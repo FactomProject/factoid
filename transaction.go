@@ -70,7 +70,6 @@ type ITransaction interface {
 }
 
 type Transaction struct {
-	ITransaction `json:"-"`
 	// version     uint64         Version of transaction. Hardcoded, naturally.
 	milliTimestamp uint64
 	// #inputs     uint8          number of inputs

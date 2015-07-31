@@ -23,9 +23,10 @@ type IRCD_1 interface {
 // In this case, we are simply validating one address to ensure it signed
 // this transaction.
 type RCD_1 struct {
-	IRCD_1
 	publicKey [ADDRESS_LENGTH]byte
 }
+
+var _ IRCD_1 = (*RCD_1)(nil)
 
 var _ IRCD = (*RCD_1)(nil)
 

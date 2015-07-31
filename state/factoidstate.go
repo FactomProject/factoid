@@ -112,7 +112,6 @@ type IFactoidState interface {
 }
 
 type FactoidState struct {
-	IFactoidState   `json:"-"`
 	database        db.IFDatabase
 	factoshisPerEC  uint64
 	currentBlock    block.IFBlock

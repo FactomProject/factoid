@@ -27,7 +27,6 @@ type ITransAddress interface {
 }
 
 type TransAddress struct {
-	ITransAddress
 	amount  uint64
 	address IAddress
 }

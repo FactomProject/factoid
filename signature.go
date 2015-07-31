@@ -29,7 +29,6 @@ type ISignature interface {
 // The default signature doesn't care about indexing.  We will extend this
 // signature for multisig
 type Signature struct {
-	ISignature
 	signature [SIGNATURE_LENGTH]byte // The signature
 }
 

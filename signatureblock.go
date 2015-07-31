@@ -27,8 +27,7 @@ type ISignatureBlock interface {
 }
 
 type SignatureBlock struct {
-	ISignatureBlock `json:"-"`
-	signatures      []ISignature
+	signatures []ISignature
 }
 
 var _ ISignatureBlock = (*SignatureBlock)(nil)

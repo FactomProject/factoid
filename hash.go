@@ -22,9 +22,10 @@ type IHash interface {
 }
 
 type Hash struct {
-	IHash `json:"-"`
-	hash  [ADDRESS_LENGTH]byte
+	hash [ADDRESS_LENGTH]byte
 }
+
+var _ IHash = (*Hash)(nil)
 
 func (h *Hash) MarshalText() ([]byte, error) {
 	return []byte(hex.EncodeToString(h.hash[:])), nil

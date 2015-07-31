@@ -43,7 +43,6 @@ type IWalletEntry interface {
 }
 
 type WalletEntry struct {
-	IWalletEntry
 	// Type string for the address.  Either "ec" or "fct"
 	addrtype string
 	// 2 byte length not included here
