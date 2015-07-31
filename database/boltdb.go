@@ -42,6 +42,45 @@ type BoltDB struct {
 
 var _ IFDatabase = (*BoltDB)(nil)
 
+func (h *BoltDB) CustomMarshalText() ([]byte, error) {
+	panic("Function not implemented")
+	return nil, nil
+}
+
+func (h *BoltDB) GetDBHash() fct.IHash {
+	panic("Function not implemented")
+	return nil
+}
+
+func (h *BoltDB) GetHash() fct.IHash {
+	panic("Function not implemented")
+	return nil
+}
+
+func (h *BoltDB) GetNewInstance() fct.IBlock {
+	panic("Function not implemented")
+	return nil
+}
+
+func (h *BoltDB) IsEqual(fct.IBlock) []fct.IBlock {
+	panic("Function not implemented")
+	return nil
+}
+func (a *BoltDB) MarshalBinary() ([]byte, error) {
+	panic("Function not implemented")
+	return nil, nil
+}
+
+func (h *BoltDB) UnmarshalBinary(data []byte) error {
+	panic("Function not implemented")
+	return nil
+}
+
+func (h *BoltDB) UnmarshalBinaryData(data []byte) ([]byte, error) {
+	panic("Function not implemented")
+	return nil, nil
+}
+
 func (bdb BoltDB) GetKeysValues(bucket []byte) (keys [][]byte, values []fct.IBlock) {
 	keys = make([][]byte, 0, 32)
 	values = make([]fct.IBlock, 0, 32)

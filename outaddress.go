@@ -17,6 +17,21 @@ type OutAddress struct {
 
 var _ IOutAddress = (*OutAddress)(nil)
 
+func (h *OutAddress) GetHash() IHash {
+	panic("Function not implemented")
+	return nil
+}
+
+func (h *OutAddress) UnmarshalBinaryData(data []byte) ([]byte, error) {
+	panic("Function not implemented")
+	return nil, nil
+}
+
+func (h *OutAddress) UnmarshalBinary(data []byte) error {
+	panic("Function not implemented")
+	return nil
+}
+
 func (b OutAddress) String() string {
 	txt, err := b.CustomMarshalText()
 	if err != nil {

@@ -42,6 +42,11 @@ func (h *Hash) UnmarshalText(b []byte) error {
 
 var _ IHash = (*Hash)(nil)
 
+func (h *Hash) GetHash() IHash {
+	panic("Function not implemented")
+	return nil
+}
+
 func (w1 Hash) GetDBHash() IHash {
 	return Sha([]byte("Hash"))
 }

@@ -122,6 +122,11 @@ type FactoidState struct {
 
 var _ IFactoidState = (*FactoidState)(nil)
 
+func (h *FactoidState) CustomMarshalText() ([]byte, error) {
+	panic("Function not implemented")
+	return nil, nil
+}
+
 func (fs *FactoidState) EndOfPeriod(period int) {
 	fs.GetCurrentBlock().EndOfPeriod(period)
 }

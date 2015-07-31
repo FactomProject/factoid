@@ -86,6 +86,11 @@ type Transaction struct {
 
 var _ ITransaction = (*Transaction)(nil)
 
+func (h *Transaction) ValidateAmounts(amts ...uint64) (uint64, error) {
+	panic("Function not implemented")
+	return 0, nil
+}
+
 // Clears caches if they are no long valid.
 func (t *Transaction) clearCaches() {
 	return

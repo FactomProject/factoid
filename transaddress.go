@@ -33,6 +33,31 @@ type TransAddress struct {
 
 var _ ITransAddress = (*TransAddress)(nil)
 
+func (h *TransAddress) GetDBHash() IHash {
+	panic("Function not implemented")
+	return nil
+}
+
+func (h *TransAddress) GetHash() IHash {
+	panic("Function not implemented")
+	return nil
+}
+
+func (h *TransAddress) GetNewInstance() IBlock {
+	panic("Function not implemented")
+	return nil
+}
+
+func (h *TransAddress) UnmarshalBinary(data []byte) error {
+	panic("Function not implemented")
+	return nil
+}
+
+func (h *TransAddress) String() string {
+	panic("Function not implemented")
+	return ""
+}
+
 func (t *TransAddress) IsEqual(addr IBlock) []IBlock {
 	a, ok := addr.(ITransAddress)
 	if !ok || // Not the right kind of IBlock
@@ -102,6 +127,10 @@ func (ta TransAddress) GetAddress() IAddress {
 // or a hash of an authorization block.  See authorization.go
 func (ta *TransAddress) SetAddress(address IAddress) {
 	ta.address = address
+}
+
+func (ta TransAddress) CustomMarshalText() ([]byte, error) {
+	return ta.CustomMarshalText2("")
 }
 
 // Make this into somewhat readable text.

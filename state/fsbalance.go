@@ -25,6 +25,25 @@ type FSbalance struct {
 
 var _ fct.IBlock = (*FSbalance)(nil)
 
+func (h *FSbalance) CustomMarshalText() ([]byte, error) {
+	panic("Function not implemented")
+	return nil, nil
+}
+
+func (h *FSbalance) GetHash() fct.IHash {
+	panic("Function not implemented")
+	return nil
+}
+func (a1 *FSbalance) IsEqual(addr fct.IBlock) []fct.IBlock {
+	panic("Function not implemented")
+	return nil
+}
+
+func (h *FSbalance) String() string {
+	panic("Function not implemented")
+	return ""
+}
+
 func (FSbalance) GetNewInstance() fct.IBlock {
 	return new(FSbalance)
 }

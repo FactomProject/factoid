@@ -56,6 +56,16 @@ type WalletEntry struct {
 
 var _ IWalletEntry = (*WalletEntry)(nil)
 
+func (h *WalletEntry) GetHash() fct.IHash {
+	panic("Function not implemented")
+	return nil
+}
+
+func (h *WalletEntry) GetName() []byte {
+	panic("Function not implemented")
+	return nil
+}
+
 func (w WalletEntry) GetType() string {
 	return w.addrtype
 }

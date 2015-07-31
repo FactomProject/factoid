@@ -34,6 +34,26 @@ type Signature struct {
 
 var _ ISignature = (*Signature)(nil)
 
+func (h *Signature) GetHash() IHash {
+	panic("Function not implemented")
+	return nil
+}
+
+func (h *Signature) GetIndex() int {
+	panic("Function not implemented")
+	return -1
+}
+
+func (h *Signature) SetIndex(int) {
+	panic("Function not implemented")
+	return
+}
+
+func (h *Signature) UnmarshalBinary(data []byte) error {
+	panic("Function not implemented")
+	return nil
+}
+
 func (b Signature) String() string {
 	txt, err := b.CustomMarshalText()
 	if err != nil {

@@ -27,8 +27,17 @@ type RCD_1 struct {
 }
 
 var _ IRCD_1 = (*RCD_1)(nil)
-
 var _ IRCD = (*RCD_1)(nil)
+
+func (h *RCD_1) GetHash() IHash {
+	panic("Function not implemented")
+	return nil
+}
+
+func (h *RCD_1) UnmarshalBinary(data []byte) error {
+	panic("Function not implemented")
+	return nil
+}
 
 func (b RCD_1) String() string {
 	txt, err := b.CustomMarshalText()

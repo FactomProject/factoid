@@ -30,6 +30,31 @@ type RCD_2 struct {
 
 var _ IRCD = (*RCD_2)(nil)
 
+func (h *RCD_2) GetHash() IHash {
+	panic("Function not implemented")
+	return nil
+}
+
+func (h *RCD_2) UnmarshalBinary(data []byte) error {
+	panic("Function not implemented")
+	return nil
+}
+
+func (h *RCD_2) CheckSig(trans ITransaction, sigblk ISignatureBlock) bool {
+	panic("Function not implemented")
+	return false
+}
+
+func (h *RCD_2) GetAddress() (IAddress, error) {
+	panic("Function not implemented")
+	return nil, nil
+}
+
+func (h *RCD_2) NumberOfSignatures() int {
+	panic("Function not implemented")
+	return -1
+}
+
 func (b RCD_2) String() string {
 	txt, err := b.CustomMarshalText()
 	if err != nil {

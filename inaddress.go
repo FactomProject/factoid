@@ -17,6 +17,21 @@ type InAddress struct {
 
 var _ IInAddress = (*InAddress)(nil)
 
+func (h *InAddress) GetHash() IHash {
+	panic("Function not implemented")
+	return nil
+}
+
+func (h *InAddress) UnmarshalBinaryData(data []byte) ([]byte, error) {
+	panic("Function not implemented")
+	return nil, nil
+}
+
+func (h *InAddress) UnmarshalBinary(data []byte) error {
+	panic("Function not implemented")
+	return nil
+}
+
 func (b InAddress) String() string {
 	txt, err := b.CustomMarshalText()
 	if err != nil {

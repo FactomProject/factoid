@@ -89,6 +89,16 @@ type SCWallet struct {
 
 var _ ISCWallet = (*SCWallet)(nil)
 
+func (w *SCWallet) GetAddressList() (names [][]byte, addresses []fct.IAddress) {
+	panic("Function not implemented")
+	return
+}
+
+func (h *SCWallet) GetHash() fct.IHash {
+	panic("Function not implemented")
+	return nil
+}
+
 func (w *SCWallet) GetDB() database.IFDatabase {
 	return &w.db
 }

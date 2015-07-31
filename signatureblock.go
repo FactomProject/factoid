@@ -32,6 +32,16 @@ type SignatureBlock struct {
 
 var _ ISignatureBlock = (*SignatureBlock)(nil)
 
+func (h *SignatureBlock) GetHash() IHash {
+	panic("Function not implemented")
+	return nil
+}
+
+func (h *SignatureBlock) UnmarshalBinary(data []byte) error {
+	panic("Function not implemented")
+	return nil
+}
+
 func (b SignatureBlock) String() string {
 	txt, err := b.CustomMarshalText()
 	if err != nil {

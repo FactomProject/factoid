@@ -20,6 +20,55 @@ type MapDB struct {
 var _ IFDatabase = (*MapDB)(nil)
 var _ = fmt.Println
 
+func (d *MapDB) Clear(bucketList [][]byte) {
+	panic("Function not implemented")
+	return
+}
+
+func (d *MapDB) Close() {
+	panic("Function not implemented")
+	return
+}
+
+func (h *MapDB) CustomMarshalText() ([]byte, error) {
+	panic("Function not implemented")
+	return nil, nil
+}
+
+func (h *MapDB) GetDBHash() fct.IHash {
+	panic("Function not implemented")
+	return nil
+}
+
+func (h *MapDB) GetHash() fct.IHash {
+	panic("Function not implemented")
+	return nil
+}
+
+func (h *MapDB) GetNewInstance() fct.IBlock {
+	panic("Function not implemented")
+	return nil
+}
+
+func (h *MapDB) IsEqual(fct.IBlock) []fct.IBlock {
+	panic("Function not implemented")
+	return nil
+}
+func (a *MapDB) MarshalBinary() ([]byte, error) {
+	panic("Function not implemented")
+	return nil, nil
+}
+
+func (h *MapDB) UnmarshalBinary(data []byte) error {
+	panic("Function not implemented")
+	return nil
+}
+
+func (h *MapDB) UnmarshalBinaryData(data []byte) ([]byte, error) {
+	panic("Function not implemented")
+	return nil, nil
+}
+
 func (b MapDB) GetKeysValues(bucket []byte) (keys [][]byte, values []fct.IBlock) {
 
 	if b.GetPersist() == nil || b.doNotPersist[string(bucket)] != nil {

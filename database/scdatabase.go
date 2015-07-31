@@ -17,6 +17,99 @@ type FDatabase struct {
 
 var _ IFDatabase = (*FDatabase)(nil)
 
+func (d *FDatabase) Clear(bucketList [][]byte) {
+	panic("Function not implemented")
+	return
+}
+
+func (d *FDatabase) Close() {
+	panic("Function not implemented")
+	return
+}
+
+func (h *FDatabase) CustomMarshalText() ([]byte, error) {
+	panic("Function not implemented")
+	return nil, nil
+}
+
+func (h *FDatabase) GetDBHash() factoid.IHash {
+	panic("Function not implemented")
+	return nil
+}
+
+func (h *FDatabase) GetHash() factoid.IHash {
+	panic("Function not implemented")
+	return nil
+}
+
+func (h *FDatabase) GetNewInstance() factoid.IBlock {
+	panic("Function not implemented")
+	return nil
+}
+
+func (h *FDatabase) IsEqual(factoid.IBlock) []factoid.IBlock {
+	panic("Function not implemented")
+	return nil
+}
+func (a *FDatabase) MarshalBinary() ([]byte, error) {
+	panic("Function not implemented")
+	return nil, nil
+}
+
+func (h *FDatabase) UnmarshalBinary(data []byte) error {
+	panic("Function not implemented")
+	return nil
+}
+
+func (h *FDatabase) UnmarshalBinaryData(data []byte) ([]byte, error) {
+	panic("Function not implemented")
+	return nil, nil
+}
+func (db *FDatabase) DeleteKey(bucket []byte, key []byte) {
+	panic("Function not implemented")
+	return
+}
+func (db *FDatabase) Get(bucket string, key factoid.IHash) factoid.IBlock {
+	panic("Function not implemented")
+	return nil
+}
+func (db *FDatabase) GetKey(key IDBKey) factoid.IBlock {
+	panic("Function not implemented")
+	return nil
+}
+func (bdb FDatabase) GetKeysValues(bucket []byte) ([][]byte, []factoid.IBlock) {
+	panic("Function not implemented")
+	return nil, nil
+}
+
+func (d *FDatabase) GetRaw(bucket []byte, key []byte) factoid.IBlock {
+	panic("Function not implemented")
+	return nil
+}
+func (d *FDatabase) Init(a ...interface{}) {
+	panic("Function not implemented")
+	return
+}
+func (db *FDatabase) Put(bucket string, key factoid.IHash, value factoid.IBlock) {
+	panic("Function not implemented")
+	return
+}
+
+func (db *FDatabase) PutKey(key IDBKey, value factoid.IBlock) {
+	panic("Function not implemented")
+	return
+}
+
+func (d *FDatabase) PutRaw(bucket []byte, key []byte, value factoid.IBlock) {
+	panic("Function not implemented")
+	return
+}
+
+func (h *FDatabase) String() string {
+	panic("Function not implemented")
+	return ""
+}
+
 // Do not hold objects in this cache in memory.  They are too big, and there
 // is no interesting reason to keep them in memory.
 func (db FDatabase) DoNotCache(bucket string) {
