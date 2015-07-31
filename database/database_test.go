@@ -19,6 +19,7 @@ var _ = rand.New
 var _ = binary.Read
 
 type t_balance struct {
+	factoid.IBlock
 	balance uint64
 }
 
