@@ -10,7 +10,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	fct "github.com/FactomProject/factoid"
-	"strings"
 )
 
 type IFBlock interface {
@@ -514,10 +513,10 @@ func (b FBlock) ValidateTransaction(index int, trans fct.ITransaction) error {
 	if tin < sum {
 		return fmt.Errorf("The inputs %s do not cover the outputs %s,\n"+
 			"the Entry Credit outputs %s, and the required fee %s",
-			strings.TrimSpace(fct.ConvertDecimal(tin)),
-			strings.TrimSpace(fct.ConvertDecimal(tout)),
-			strings.TrimSpace(fct.ConvertDecimal(tec)),
-			strings.TrimSpace(fct.ConvertDecimal(fee)))
+			fct.ConvertDecimalToString(tin),
+			fct.ConvertDecimalToString(tout),
+			fct.ConvertDecimalToString(tec),
+			fct.ConvertDecimalToString(fee))
 	}
 	return nil
 }

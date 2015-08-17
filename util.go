@@ -138,9 +138,22 @@ func PrtIndent(level int) {
 var FactoidPrefix = []byte{0x5f, 0xb1}
 var EntryCreditPrefix = []byte{0x59, 0x2a}
 
+// Converts factoshis to floating point factoids
+func ConvertDecimalToFloat(v uint64) float64 {
+	f := float64(v)
+	f = f / 100000000.0
+	return f
+}
+
+// Converts factoshis to floating point string
+func ConvertDecimalToString(v uint64) string {
+	f := ConvertDecimalToFloat(v)
+	return fmt.Sprintf("%.8f", f)
+}
+
 // Take fixed point data and produce a nice decimial point
 // sort of output that users can handle.
-func ConvertDecimal(v uint64) string {
+func ConvertDecimalToPaddedString(v uint64) string {
 	tv := v / 100000000
 	bv := v - (tv * 100000000)
 	var str string

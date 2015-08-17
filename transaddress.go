@@ -135,7 +135,7 @@ func (ta *TransAddress) SetAddress(address IAddress) {
 func (ta TransAddress) CustomMarshalText2(label string) ([]byte, error) {
 	var out bytes.Buffer
 	out.WriteString(fmt.Sprintf("   %8s:", label))
-	v := ConvertDecimal(ta.Amount)
+	v := ConvertDecimalToPaddedString(ta.Amount)
 	fill := 8 - len(v) + strings.Index(v, ".") + 1
 	fstr := fmt.Sprintf("%%%vs%%%vs ", 18-fill, fill)
 	out.WriteString(fmt.Sprintf(fstr, v, ""))
