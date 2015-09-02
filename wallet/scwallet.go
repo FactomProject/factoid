@@ -10,10 +10,10 @@
 package wallet
 
 import (
+	"crypto/rand"
 	"crypto/sha512"
 	"errors"
 	"fmt"
-
 	"github.com/FactomProject/ed25519"
 	fct "github.com/FactomProject/factoid"
 	"github.com/FactomProject/factoid/database"
@@ -34,15 +34,31 @@ type ISCWallet interface {
 	SetSeed(seed []byte)
 	// Get the seed for a wallet
 	GetSeed() []byte
+	// Set the current deterministic root (Initialization function)
+	SetRoot([]byte)
 	// Returns the backing database for the wallet
 	GetDB() database.IFDatabase
 	// Import a key pair.  If the private key is null, this is treated as an
 	// external address, useful only as a destination
-	AddKeyPair(addrtype string, name []byte, public []byte, private []byte) (fct.IAddress, error)
-	// Generate an Factoid Address
+	AddKeyPair(addrtype string, name []byte, public []byte, private []byte, generateRandomIfAddressPresent bool) (fct.IAddress, error)
+	// Generate a Factoid Address
 	GenerateFctAddress(name []byte, m int, n int) (fct.IAddress, error)
 	// Generate an Entry Credit Address
 	GenerateECAddress(name []byte) (fct.IAddress, error)
+
+	// Generate a Factoid Address from a private key
+	GenerateFctAddressFromPrivateKey(name []byte, privateKey []byte, m int, n int) (fct.IAddress, error)
+	// Generate an Entry Credit Address from a privatekey
+	GenerateECAddressFromPrivateKey(name []byte, privateKey []byte) (fct.IAddress, error)
+
+	// Generate a Factoid Address from a human readable private key
+	GenerateFctAddressFromHumanReadablePrivateKey(name []byte, privateKey string, m int, n int) (fct.IAddress, error)
+	// Generate an Entry Credit Address from a human readable private key
+	GenerateECAddressFromHumanReadablePrivateKey(name []byte, privateKey string) (fct.IAddress, error)
+
+	// Generate a Factoid Address from a set of 12 words from the token sale
+	GenerateFctAddressFromMnemonic(name []byte, mnemonic string, m int, n int) (fct.IAddress, error)
+
 	// Get details for an address
 	GetAddressDetailsAddr(addr []byte) IWalletEntry
 	// Returns the Address hash (what we use for inputs) given the public key
@@ -84,7 +100,8 @@ var factoshisPerEC uint64 = 100000
 type SCWallet struct {
 	db            database.MapDB
 	isInitialized bool //defaults to 0 and false
-	nextSeed      []byte
+	RootSeed      []byte
+	NextSeed      []byte
 }
 
 var _ ISCWallet = (*SCWallet)(nil)
@@ -100,6 +117,10 @@ func (SCWallet) GetHash() fct.IHash {
 /***************************************
  *       Methods
  ***************************************/
+
+func (w *SCWallet) SetRoot(root []byte) {
+	w.RootSeed = root
+}
 
 func (w *SCWallet) GetDB() database.IFDatabase {
 	return &w.db
@@ -164,8 +185,21 @@ func (w *SCWallet) GetAddressDetailsAddr(name []byte) IWalletEntry {
 	return w.db.GetRaw([]byte("wallet.address.addr"), name).(IWalletEntry)
 }
 
-func (w *SCWallet) generateAddress(addrtype string, name []byte, m int, n int) (fct.IAddress, error) {
+func (w *SCWallet) generateAddressFromPrivateKey(addrtype string, name []byte, privateKey []byte, m int, n int) (fct.IAddress, error) {
+	if addrtype == "fct" && (m != 1 || n != 1) {
+		return nil, fmt.Errorf("Multisig addresses are not supported at this time")
+	}
 
+	// Get a new public/private key pair
+	pub, pri, err := w.generateKeyFromPrivateKey(privateKey)
+	if err != nil {
+		return nil, err
+	}
+
+	return w.AddKeyPair(addrtype, name, pub, pri, false)
+}
+
+func (w *SCWallet) generateAddress(addrtype string, name []byte, m int, n int) (fct.IAddress, error) {
 	if addrtype == "fct" && (m != 1 || n != 1) {
 		return nil, fmt.Errorf("Multisig addresses are not supported at this time")
 	}
@@ -176,10 +210,10 @@ func (w *SCWallet) generateAddress(addrtype string, name []byte, m int, n int) (
 		return nil, err
 	}
 
-	return w.AddKeyPair(addrtype, name, pub, pri)
+	return w.AddKeyPair(addrtype, name, pub, pri, true)
 }
 
-func (w *SCWallet) AddKeyPair(addrtype string, name []byte, pub []byte, pri []byte) (address fct.IAddress, err error) {
+func (w *SCWallet) AddKeyPair(addrtype string, name []byte, pub []byte, pri []byte, generateRandomIfAddressPresent bool) (address fct.IAddress, err error) {
 
 	we := new(WalletEntry)
 
@@ -192,9 +226,13 @@ func (w *SCWallet) AddKeyPair(addrtype string, name []byte, pub []byte, pri []by
 	// Make sure we have not generated this pair before;  Keep
 	// generating until we have a unique pair.
 	for w.db.GetRaw([]byte(fct.W_ADDRESS_PUB_KEY), pub) != nil {
-		pub, pri, err = w.generateKey()
-		if err != nil {
-			return nil, err
+		if generateRandomIfAddressPresent {
+			pub, pri, err = w.generateKey()
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			return nil, fmt.Errorf("Address already exists in the wallet")
 		}
 	}
 
@@ -222,6 +260,37 @@ func (w *SCWallet) GenerateFctAddress(name []byte, m int, n int) (hash fct.IAddr
 	return w.generateAddress("fct", name, m, n)
 }
 
+func (w *SCWallet) GenerateECAddressFromPrivateKey(name []byte, privateKey []byte) (hash fct.IAddress, err error) {
+	return w.generateAddressFromPrivateKey("ec", name, privateKey, 1, 1)
+}
+func (w *SCWallet) GenerateFctAddressFromPrivateKey(name []byte, privateKey []byte, m int, n int) (hash fct.IAddress, err error) {
+	return w.generateAddressFromPrivateKey("fct", name, privateKey, m, n)
+}
+
+func (w *SCWallet) GenerateECAddressFromHumanReadablePrivateKey(name []byte, privateKey string) (fct.IAddress, error) {
+	priv, err := HumanReadableECPrivateKeyToPrivateKey(privateKey)
+	if err != nil {
+		return nil, err
+	}
+	return w.GenerateECAddressFromPrivateKey(name, priv)
+}
+
+func (w *SCWallet) GenerateFctAddressFromHumanReadablePrivateKey(name []byte, privateKey string, m int, n int) (fct.IAddress, error) {
+	priv, err := HumanReadableFactoidPrivateKeyToPrivateKey(privateKey)
+	if err != nil {
+		return nil, err
+	}
+	return w.GenerateFctAddressFromPrivateKey(name, priv, m, n)
+}
+
+func (w *SCWallet) GenerateFctAddressFromMnemonic(name []byte, mnemonic string, m int, n int) (fct.IAddress, error) {
+	priv, err := MnemonicStringToPrivateKey(mnemonic)
+	if err != nil {
+		return nil, err
+	}
+	return w.GenerateFctAddressFromPrivateKey(name, priv, m, n)
+}
+
 func (w *SCWallet) NewSeed(data []byte) {
 	if len(data) == 0 {
 		return
@@ -229,15 +298,42 @@ func (w *SCWallet) NewSeed(data []byte) {
 	hasher := sha512.New()
 	hasher.Write(data)
 	seedhash := hasher.Sum(nil)
-	w.nextSeed = seedhash
+	w.NextSeed = seedhash
+	w.RootSeed = seedhash
+	b := new(database.ByteStore)
+	b.SetBytes(w.RootSeed)
+	w.db.PutRaw([]byte(fct.W_SEEDS), fct.CURRENT_SEED[:], b)
+	w.db.PutRaw([]byte(fct.W_SEEDS), w.RootSeed[:32], b)
+	w.db.PutRaw([]byte(fct.W_SEED_HEADS), w.RootSeed[:32], b)
 }
 
 func (w *SCWallet) SetSeed(seed []byte) {
-	w.nextSeed = seed
+	w.NextSeed = seed
+	w.RootSeed = seed
+	b := new(database.ByteStore)
+	b.SetBytes(w.RootSeed)
+	w.db.PutRaw([]byte(fct.W_SEEDS), fct.CURRENT_SEED[:], b)
+	w.db.PutRaw([]byte(fct.W_SEEDS), w.RootSeed[:32], b)
+	w.db.PutRaw([]byte(fct.W_SEED_HEADS), w.RootSeed[:32], b)
 }
 
 func (w *SCWallet) GetSeed() []byte {
-	return w.nextSeed
+	iroot := w.db.GetRaw([]byte(fct.W_SEEDS), fct.CURRENT_SEED[:])
+	if iroot == nil {
+		randomstuff := make([]byte, 1024)
+		rand.Read(randomstuff)
+		w.NewSeed(randomstuff)
+	}
+	hasher := sha512.New()
+	hasher.Write([]byte(w.NextSeed))
+	seedhash := hasher.Sum(nil)
+	w.NextSeed = seedhash
+
+	b := new(database.ByteStore)
+	b.SetBytes(w.NextSeed)
+	w.db.PutRaw([]byte(fct.W_SEED_HEADS), w.RootSeed[:32], b)
+
+	return w.NextSeed
 }
 
 func (w *SCWallet) Init(a ...interface{}) {
@@ -245,11 +341,6 @@ func (w *SCWallet) Init(a ...interface{}) {
 		return
 	}
 	w.isInitialized = true
-	hasher := sha512.New()
-	hasher.Write([]byte("replace with randomness"))
-	seedhash := hasher.Sum(nil)
-	w.nextSeed = seedhash
-
 	w.db.Init()
 }
 
@@ -262,22 +353,34 @@ func (w *SCWallet) Init(a ...interface{}) {
 // and the public key is the last 32 bytes.
 // The public key essentially returns twice because of this.
 func (w *SCWallet) generateKey() (public []byte, private []byte, err error) {
-	if len(w.nextSeed) != 64 {
-		return nil, nil, errors.New("wallet seed uninitialized")
-	}
+
 	keypair := new([64]byte)
 	// the secret part of the keypair is the top 32 bytes of the sha512 hash
-	copy(keypair[:32], w.nextSeed[:32])
+	copy(keypair[:32], w.GetSeed()[:32])
 	// the crypto library puts the pubkey in the lower 32 bytes and returns the same 32 bytes.
 	pub := ed25519.GetPublicKey(keypair)
 
-	// Iterate the deterministic key private generator
-	// so it is ready for the next time this function is called.
-	hasher := sha512.New()
-	hasher.Write(w.nextSeed)
-	w.nextSeed = hasher.Sum(nil)
+	return pub[:], keypair[:], err
+}
+
+func GenerateKeyFromPrivateKey(privateKey []byte) (public []byte, private []byte, err error) {
+	if len(privateKey) == 64 {
+		privateKey = privateKey[:32]
+	}
+	if len(privateKey) != 32 {
+		return nil, nil, errors.New("Wrong privateKey size")
+	}
+	keypair := new([64]byte)
+
+	copy(keypair[:32], privateKey[:])
+	// the crypto library puts the pubkey in the lower 32 bytes and returns the same 32 bytes.
+	pub := ed25519.GetPublicKey(keypair)
 
 	return pub[:], keypair[:], err
+}
+
+func (w *SCWallet) generateKeyFromPrivateKey(privateKey []byte) (public []byte, private []byte, err error) {
+	return GenerateKeyFromPrivateKey(privateKey)
 }
 
 func (w *SCWallet) CreateTransaction(time uint64) fct.ITransaction {
@@ -287,7 +390,7 @@ func (w *SCWallet) CreateTransaction(time uint64) fct.ITransaction {
 }
 
 func (w *SCWallet) getWalletEntry(bucket []byte, address fct.IAddress) (IWalletEntry, fct.IAddress, error) {
-
+	
 	v := w.db.GetRaw([]byte(fct.W_RCD_ADDRESS_HASH), address.Bytes())
 	if v == nil {
 		return nil, nil, fmt.Errorf("Unknown address")
@@ -313,14 +416,22 @@ func (w *SCWallet) GetAddressHash(address fct.IAddress) (fct.IAddress, error) {
 }
 
 func (w *SCWallet) AddInput(trans fct.ITransaction, address fct.IAddress, amount uint64) error {
+	// Check if this is an address we know.
 	we, adr, err := w.getWalletEntry([]byte(fct.W_RCD_ADDRESS_HASH), address)
-	if err != nil {
-		return err
+	// If it isn't, we assume the user knows what they are doing.
+	if we == nil || err != nil {
+		rcd := fct.NewRCD_1(address.Bytes()) 
+		trans.AddRCD(rcd)
+		adr, err := rcd.GetAddress()
+		if err != nil {
+			return err
+		}
+		trans.AddInput(fct.CreateAddress(adr), amount)
+	}else{		
+		trans.AddRCD(we.GetRCD())
+		trans.AddInput(fct.CreateAddress(adr), amount)
 	}
-
-	trans.AddInput(fct.CreateAddress(adr), amount)
-	trans.AddRCD(we.GetRCD())
-
+	
 	return nil
 }
 
@@ -348,13 +459,11 @@ func (w *SCWallet) AddOutput(trans fct.ITransaction, address fct.IAddress, amoun
 
 	_, adr, err := w.getWalletEntry([]byte(fct.W_RCD_ADDRESS_HASH), address)
 	if err != nil {
-		return err
+		adr = address
 	}
 
 	trans.AddOutput(fct.CreateAddress(adr), amount)
-	if err != nil {
-		return err
-	}
+
 	return nil
 }
 
@@ -362,13 +471,10 @@ func (w *SCWallet) AddECOutput(trans fct.ITransaction, address fct.IAddress, amo
 
 	_, adr, err := w.getWalletEntry([]byte(fct.W_RCD_ADDRESS_HASH), address)
 	if err != nil {
-		return err
+		adr = address
 	}
 
 	trans.AddECOutput(fct.CreateAddress(adr), amount)
-	if err != nil {
-		return err
-	}
 	return nil
 }
 

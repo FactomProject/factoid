@@ -6,6 +6,7 @@ package wallet
 
 import fct "github.com/FactomProject/factoid"
 import (
+	"bytes"
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
@@ -22,9 +23,31 @@ var _ = rand.New
 var _ = binary.Write
 var _ = fct.Prtln
 
+func TestGenerateKeyFromPrivateKey(t *testing.T) {
+	w := new(SCWallet) // make me a wallet
+	w.Init()
+	w.NewSeed([]byte("lkdfsgjlagkjlasd"))
+	pub, priv, err := w.generateKey()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	pub2, priv2, err := w.generateKeyFromPrivateKey(priv[:32])
+	if bytes.Compare(pub, pub2) != 0 {
+		t.Errorf("Public keys are not identical")
+	}
+	if bytes.Compare(priv, priv2) != 0 {
+		t.Errorf("Private keys are not identical")
+	}
+}
+
 func Test_create_scwallet(test *testing.T) {
 	w := new(SCWallet) // make me a wallet
 	w.Init()
+	w.NewSeed([]byte("lkdfsgjlagkjlasd"))
 	we := new(WalletEntry)
 	rcd := new(factoid.RCD_1)
 	name := "John Smith"
@@ -48,6 +71,7 @@ func Test_create_scwallet(test *testing.T) {
 func Test_GenerateAddress_scwallet(test *testing.T) {
 	w := new(SCWallet) // make me a wallet
 	w.Init()
+	w.NewSeed([]byte("lkdfsgjlagkjlasd"))
 	h1, err := w.GenerateFctAddress([]byte("test 1"), 1, 1)
 	if err != nil {
 		test.Fail()
@@ -71,6 +95,7 @@ func Test_GenerateAddress_scwallet(test *testing.T) {
 func Test_CreateTransaction_swcallet(test *testing.T) {
 	w := new(SCWallet) // make me a wallet
 	w.Init()
+	w.NewSeed([]byte("lkdfsgjlagkjlasd"))
 	h1, err := w.GenerateFctAddress([]byte("test 1"), 1, 1)
 	if err != nil {
 		test.Fail()
@@ -108,6 +133,7 @@ func Test_CreateTransaction_swcallet(test *testing.T) {
 func Test_SignTransaction_swcallet(test *testing.T) {
 	w := new(SCWallet) // make me a wallet
 	w.Init()
+	w.NewSeed([]byte("lkdfsgjlagkjlasd"))
 	h0, err := w.GenerateFctAddress([]byte("test 0"), 1, 1)
 	if err != nil {
 		test.Fail()

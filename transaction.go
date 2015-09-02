@@ -33,6 +33,9 @@ type ITransaction interface {
 	// RCDs are generally added at the same time.
 	AddRCD(rcd IRCD)
 
+	// Get the hash of the signed portion (not including signatures)
+	GetSigHash() IHash
+	
 	// Accessors the inputs, outputs, and Entry Credit outputs (ecoutputs)
 	// to this transaction.
 	GetInput(int) (IInAddress, error)
@@ -103,6 +106,16 @@ func (t Transaction) GetHash() IHash {
 	}
 	return Sha(m)
 }
+
+func (t Transaction) GetSigHash() IHash {
+	m, err := t.MarshalBinarySig()
+	if err != nil {
+		return nil
+	}
+	return Sha(m)
+}
+
+
 
 func (t Transaction) String() string {
 	txt, err := t.CustomMarshalText()
@@ -194,11 +207,11 @@ func ValidateAmounts(amts ...uint64) (uint64, error) {
 	var sum int64
 	for _, amt := range amts {
 		if int64(amt) < 0 {
-			return 0, fmt.Errorf("Negative amounts are not allowed")
+			return 0, fmt.Errorf("Amount is out of range")
 		}
 		sum += int64(amt)
 		if int64(sum) < 0 {
-			return 0, fmt.Errorf("The amounts specified are too large")
+			return 0, fmt.Errorf("Amounts on the transaction are out of range")
 		}
 	}
 	return uint64(sum), nil
