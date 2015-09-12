@@ -54,6 +54,10 @@ type WalletEntry struct {
 	private [][]byte // Set of private keys necessary to sign the rcd
 }
 
+func (b WalletEntry) GetPrivate() [][]byte {
+	return b.private[:]
+}
+
 var _ IWalletEntry = (*WalletEntry)(nil)
 
 /*************************************
@@ -260,9 +264,9 @@ func (w WalletEntry) GetRCD() fct.IRCD {
 
 func (w *WalletEntry) AddKey(public, private []byte) {
 	if len(public) != fct.ADDRESS_LENGTH || (len(private) != fct.ADDRESS_LENGTH &&
-		                    len(private) != fct.PRIVATE_LENGTH) {
+		len(private) != fct.PRIVATE_LENGTH) {
 		panic(fmt.Sprintf("Bad Keys presented to AddKey.  Should not happen."+
-		 "\n  public: %x\n  private: %x", public, private))
+			"\n  public: %x\n  private: %x", public, private))
 	}
 	pu := make([]byte, fct.ADDRESS_LENGTH, fct.ADDRESS_LENGTH)
 	pr := make([]byte, fct.PRIVATE_LENGTH, fct.PRIVATE_LENGTH)

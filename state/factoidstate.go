@@ -13,8 +13,9 @@ import (
 	cp "github.com/FactomProject/FactomCode/controlpanel"
 	fct "github.com/FactomProject/factoid"
 	"github.com/FactomProject/factoid/block"
+	"github.com/FactomProject/factoid/block/coinbase"
 	db "github.com/FactomProject/factoid/database"
-	"github.com/FactomProject/factoid/wallet"
+	"github.com/FactomProject/factoid/wallet/scwallet"
 	"time"
 )
 
@@ -32,8 +33,8 @@ type IFactoidState interface {
 
 	// Get the wallet used to help manage the Factoid State in
 	// some applications.
-	GetWallet() wallet.ISCWallet
-	SetWallet(wallet.ISCWallet)
+	GetWallet() scwallet.ISCWallet
+	SetWallet(scwallet.ISCWallet)
 
 	// The Exchange Rate for Entry Credits in Factoshis per
 	// Entry Credits
@@ -116,7 +117,7 @@ type FactoidState struct {
 	factoshisPerEC  uint64
 	currentBlock    block.IFBlock
 	dbheight        uint32
-	wallet          wallet.ISCWallet
+	wallet          scwallet.ISCWallet
 	numTransactions int
 }
 
@@ -126,11 +127,11 @@ func (fs *FactoidState) EndOfPeriod(period int) {
 	fs.GetCurrentBlock().EndOfPeriod(period)
 }
 
-func (fs *FactoidState) GetWallet() wallet.ISCWallet {
+func (fs *FactoidState) GetWallet() scwallet.ISCWallet {
 	return fs.wallet
 }
 
-func (fs *FactoidState) SetWallet(w wallet.ISCWallet) {
+func (fs *FactoidState) SetWallet(w scwallet.ISCWallet) {
 	fs.wallet = w
 }
 
@@ -262,7 +263,7 @@ func (fs *FactoidState) ProcessEndOfBlock() {
 	fs.dbheight += 1
 	fs.currentBlock = block.NewFBlock(fs.GetFactoshisPerEC(), fs.dbheight)
 
-	t := block.GetCoinbase(fs.GetTimeMilli())
+	t := coinbase.GetCoinbase(fs.GetTimeMilli())
 	err := fs.currentBlock.AddCoinbase(t)
 	if err != nil {
 		panic(err.Error())
@@ -295,7 +296,7 @@ func (fs *FactoidState) ProcessEndOfBlock2(nextBlkHeight uint32) {
 
 	fs.currentBlock = block.NewFBlock(fs.GetFactoshisPerEC(), nextBlkHeight)
 
-	t := block.GetCoinbase(fs.GetTimeMilli())
+	t := coinbase.GetCoinbase(fs.GetTimeMilli())
 	err := fs.currentBlock.AddCoinbase(t)
 	if err != nil {
 		panic(err.Error())

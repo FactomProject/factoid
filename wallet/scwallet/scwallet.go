@@ -7,7 +7,7 @@
 // here, but rather provides a mechanism to create keys
 // and sign transactions, etc.
 
-package wallet
+package scwallet
 
 import (
 	"crypto/rand"
@@ -17,6 +17,7 @@ import (
 	"github.com/FactomProject/ed25519"
 	fct "github.com/FactomProject/factoid"
 	"github.com/FactomProject/factoid/database"
+	. "github.com/FactomProject/factoid/wallet"
 )
 
 // The wallet interface uses bytes.  This is because we want to
@@ -148,7 +149,7 @@ func (w *SCWallet) SignInputs(trans fct.ITransaction) (bool, error) {
 			we := w.db.GetRaw([]byte(fct.W_ADDRESS_PUB_KEY), pub).(*WalletEntry)
 			if we != nil {
 				var pri [fct.SIGNATURE_LENGTH]byte
-				copy(pri[:], we.private[0])
+				copy(pri[:], we.GetPrivate()[0])
 				bsig := ed25519.Sign(&pri, data)
 				sig := new(fct.Signature)
 				sig.SetSignature(bsig[:])
@@ -390,7 +391,7 @@ func (w *SCWallet) CreateTransaction(time uint64) fct.ITransaction {
 }
 
 func (w *SCWallet) getWalletEntry(bucket []byte, address fct.IAddress) (IWalletEntry, fct.IAddress, error) {
-	
+
 	v := w.db.GetRaw([]byte(fct.W_RCD_ADDRESS_HASH), address.Bytes())
 	if v == nil {
 		return nil, nil, fmt.Errorf("Unknown address")
@@ -420,18 +421,18 @@ func (w *SCWallet) AddInput(trans fct.ITransaction, address fct.IAddress, amount
 	we, adr, err := w.getWalletEntry([]byte(fct.W_RCD_ADDRESS_HASH), address)
 	// If it isn't, we assume the user knows what they are doing.
 	if we == nil || err != nil {
-		rcd := fct.NewRCD_1(address.Bytes()) 
+		rcd := fct.NewRCD_1(address.Bytes())
 		trans.AddRCD(rcd)
 		adr, err := rcd.GetAddress()
 		if err != nil {
 			return err
 		}
 		trans.AddInput(fct.CreateAddress(adr), amount)
-	}else{		
+	} else {
 		trans.AddRCD(we.GetRCD())
 		trans.AddInput(fct.CreateAddress(adr), amount)
 	}
-	
+
 	return nil
 }
 

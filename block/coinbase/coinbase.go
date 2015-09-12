@@ -2,12 +2,12 @@
 // Use of this source code is governed by the MIT
 // license that can be found in the LICENSE file.
 
-package block
+package coinbase
 
 import (
 	"fmt"
 	fct "github.com/FactomProject/factoid"
-	"github.com/FactomProject/factoid/wallet"
+	"github.com/FactomProject/factoid/wallet/scwallet"
 )
 
 var _ = fct.Prt
@@ -31,8 +31,8 @@ func UpdateAmount(amt uint64) {
 func GetCoinbase(ftime uint64) fct.ITransaction {
 
 	if false && adrs == nil {
-		var w wallet.ISCWallet
-		w = new(wallet.SCWallet)
+		var w scwallet.ISCWallet
+		w = new(scwallet.SCWallet)
 		w.Init()
 
 		adrs = make([]fct.IAddress, addressCnt)

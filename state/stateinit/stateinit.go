@@ -16,13 +16,14 @@ import (
 	"github.com/FactomProject/factoid/database"
 	"github.com/FactomProject/factoid/state"
 	"github.com/FactomProject/factoid/wallet"
+	"github.com/FactomProject/factoid/wallet/scwallet"
 )
 
 var _ = fmt.Printf
 
 func NewFactoidState(filename string) state.IFactoidState {
 	fs := new(state.FactoidState)
-	wall := new(wallet.SCWallet)
+	wall := new(scwallet.SCWallet)
 	wall.Init()
 
 	fs.SetWallet(wall)
@@ -70,7 +71,7 @@ func GetDatabase(filename string) database.IFDatabase {
 	bucketList = append(bucketList, []byte(fct.W_NAME))
 	bucketList = append(bucketList, []byte(fct.W_SEEDS))
 	bucketList = append(bucketList, []byte(fct.W_SEED_HEADS))
-	
+
 	instances = make(map[[fct.ADDRESS_LENGTH]byte]fct.IBlock)
 
 	var addinstance = func(b fct.IBlock) {
