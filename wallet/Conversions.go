@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/FactomProject/go-bip32"
 	"github.com/FactomProject/go-bip39"
-	"github.com/btcsuitereleases/btcutil/base58"
+	"github.com/FactomProject/btcutil/base58"
 	"strings"
 )
 
