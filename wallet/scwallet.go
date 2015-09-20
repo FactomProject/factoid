@@ -136,17 +136,16 @@ func (w *SCWallet) SignInputs(trans fct.ITransaction) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-
-	var numSigs int = 0
-
-	inputs := trans.GetInputs()
+	
+	var errMsg []byte
+	
 	rcds := trans.GetRCDs()
 	for i, rcd := range rcds {
 		rcd1, ok := rcd.(*fct.RCD_1)
 		if ok {
 			pub := rcd1.GetPublicKey()
-			we := w.db.GetRaw([]byte(fct.W_ADDRESS_PUB_KEY), pub).(*WalletEntry)
-			if we != nil {
+			we, ok := w.db.GetRaw([]byte(fct.W_ADDRESS_PUB_KEY), pub).(*WalletEntry)
+			if ok {
 				var pri [fct.SIGNATURE_LENGTH]byte
 				copy(pri[:], we.private[0])
 				bsig := ed25519.Sign(&pri, data)
@@ -155,12 +154,18 @@ func (w *SCWallet) SignInputs(trans fct.ITransaction) (bool, error) {
 				sigblk := new(fct.SignatureBlock)
 				sigblk.AddSignature(sig)
 				trans.SetSignatureBlock(i, sigblk)
-				numSigs += 1
+			}else{
+				errMsg = append(errMsg, 
+					[]byte("Do not have the private key for: "+
+					fct.ConvertFctAddressToUserStr(fct.NewAddress(pub))+"\n")...)
 			}
 		}
 	}
 
-	return numSigs == len(inputs), nil
+	if errMsg != nil {
+		return false, fmt.Errorf("%s",string(errMsg))
+	}
+	return true,nil
 }
 
 // SignCommit will sign the []byte with the Entry Credit Key and return the
