@@ -328,6 +328,10 @@ func (w *SCWallet) GetSeed() []byte {
 		randomstuff := make([]byte, 1024)
 		rand.Read(randomstuff)
 		w.NewSeed(randomstuff)
+	}else if w.RootSeed == nil {
+		w.RootSeed = iroot.(database.IByteStore).Bytes()
+		inext := w.db.GetRaw([]byte(fct.W_SEED_HEADS),w.RootSeed[:32])
+		w.NextSeed = inext.(database.IByteStore).Bytes()
 	}
 	hasher := sha512.New()
 	hasher.Write([]byte(w.NextSeed))
