@@ -687,7 +687,7 @@ func (t *Transaction) CustomMarshalText() (text []byte, err error) {
 	out.WriteString("\n          MilliTimestamp: ")
 	WriteNumber64(&out, uint64(t.MilliTimestamp))
 	ts := time.Unix(0, int64(t.MilliTimestamp*1000000))
-	out.WriteString(ts.UTC().Format(" Jan 2, 2006 at 3:04am (MST)"))
+	out.WriteString(ts.UTC().Format(time.RFC822Z))
 	out.WriteString("\n                # Inputs: ")
 	WriteNumber16(&out, uint16(len(t.Inputs)))
 	out.WriteString("\n               # Outputs: ")
