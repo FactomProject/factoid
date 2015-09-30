@@ -7,7 +7,7 @@
 // here, but rather provides a mechanism to create keys
 // and sign transactions, etc.
 
-package scwallet
+package wallet
 
 import (
 	"crypto/rand"
@@ -17,7 +17,6 @@ import (
 	"github.com/FactomProject/ed25519"
 	fct "github.com/FactomProject/factoid"
 	"github.com/FactomProject/factoid/database"
-	. "github.com/FactomProject/factoid/wallet"
 )
 
 // The wallet interface uses bytes.  This is because we want to
@@ -137,9 +136,9 @@ func (w *SCWallet) SignInputs(trans fct.ITransaction) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	
+
 	var errMsg []byte
-	
+
 	rcds := trans.GetRCDs()
 	for i, rcd := range rcds {
 		rcd1, ok := rcd.(*fct.RCD_1)
@@ -155,18 +154,18 @@ func (w *SCWallet) SignInputs(trans fct.ITransaction) (bool, error) {
 				sigblk := new(fct.SignatureBlock)
 				sigblk.AddSignature(sig)
 				trans.SetSignatureBlock(i, sigblk)
-			}else{
-				errMsg = append(errMsg, 
+			} else {
+				errMsg = append(errMsg,
 					[]byte("Do not have the private key for: "+
-					fct.ConvertFctAddressToUserStr(fct.NewAddress(pub))+"\n")...)
+						fct.ConvertFctAddressToUserStr(fct.NewAddress(pub))+"\n")...)
 			}
 		}
 	}
 
 	if errMsg != nil {
-		return false, fmt.Errorf("%s",string(errMsg))
+		return false, fmt.Errorf("%s", string(errMsg))
 	}
-	return true,nil
+	return true, nil
 }
 
 // SignCommit will sign the []byte with the Entry Credit Key and return the
@@ -329,9 +328,9 @@ func (w *SCWallet) GetSeed() []byte {
 		randomstuff := make([]byte, 1024)
 		rand.Read(randomstuff)
 		w.NewSeed(randomstuff)
-	}else if w.RootSeed == nil {
+	} else if w.RootSeed == nil {
 		w.RootSeed = iroot.(database.IByteStore).Bytes()
-		inext := w.db.GetRaw([]byte(fct.W_SEED_HEADS),w.RootSeed[:32])
+		inext := w.db.GetRaw([]byte(fct.W_SEED_HEADS), w.RootSeed[:32])
 		w.NextSeed = inext.(database.IByteStore).Bytes()
 	}
 	hasher := sha512.New()

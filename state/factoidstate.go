@@ -15,7 +15,7 @@ import (
 	"github.com/FactomProject/factoid/block"
 	"github.com/FactomProject/factoid/block/coinbase"
 	db "github.com/FactomProject/factoid/database"
-	"github.com/FactomProject/factoid/wallet/scwallet"
+	"github.com/FactomProject/factoid/wallet"
 	"time"
 )
 
@@ -33,8 +33,8 @@ type IFactoidState interface {
 
 	// Get the wallet used to help manage the Factoid State in
 	// some applications.
-	GetWallet() scwallet.ISCWallet
-	SetWallet(scwallet.ISCWallet)
+	GetWallet() wallet.ISCWallet
+	SetWallet(wallet.ISCWallet)
 
 	// The Exchange Rate for Entry Credits in Factoshis per
 	// Entry Credits
@@ -117,7 +117,7 @@ type FactoidState struct {
 	factoshisPerEC  uint64
 	currentBlock    block.IFBlock
 	dbheight        uint32
-	wallet          scwallet.ISCWallet
+	wallet          wallet.ISCWallet
 	numTransactions int
 }
 
@@ -127,11 +127,11 @@ func (fs *FactoidState) EndOfPeriod(period int) {
 	fs.GetCurrentBlock().EndOfPeriod(period)
 }
 
-func (fs *FactoidState) GetWallet() scwallet.ISCWallet {
+func (fs *FactoidState) GetWallet() wallet.ISCWallet {
 	return fs.wallet
 }
 
-func (fs *FactoidState) SetWallet(w scwallet.ISCWallet) {
+func (fs *FactoidState) SetWallet(w wallet.ISCWallet) {
 	fs.wallet = w
 }
 

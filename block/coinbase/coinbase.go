@@ -7,7 +7,7 @@ package coinbase
 import (
 	"fmt"
 	fct "github.com/FactomProject/factoid"
-	"github.com/FactomProject/factoid/wallet/scwallet"
+	"github.com/FactomProject/factoid/wallet"
 )
 
 var _ = fct.Prt
@@ -31,8 +31,8 @@ func UpdateAmount(amt uint64) {
 func GetCoinbase(ftime uint64) fct.ITransaction {
 
 	if false && adrs == nil {
-		var w scwallet.ISCWallet
-		w = new(scwallet.SCWallet)
+		var w wallet.ISCWallet
+		w = new(wallet.SCWallet)
 		w.Init()
 
 		adrs = make([]fct.IAddress, addressCnt)

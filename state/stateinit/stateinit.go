@@ -16,14 +16,13 @@ import (
 	"github.com/FactomProject/factoid/database"
 	"github.com/FactomProject/factoid/state"
 	"github.com/FactomProject/factoid/wallet"
-	"github.com/FactomProject/factoid/wallet/scwallet"
 )
 
 var _ = fmt.Printf
 
 func NewFactoidState(filename string) state.IFactoidState {
 	fs := new(state.FactoidState)
-	wall := new(scwallet.SCWallet)
+	wall := new(wallet.SCWallet)
 	wall.Init()
 
 	fs.SetWallet(wall)
