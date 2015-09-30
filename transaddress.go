@@ -17,6 +17,8 @@ import (
 	"strings"
 )
 
+var _ = hex.EncodeToString
+
 type ITransAddress interface {
 	IBlock
 	GetAmount() uint64
@@ -134,25 +136,31 @@ func (ta *TransAddress) SetAddress(address IAddress) {
 // Make this into somewhat readable text.
 func (ta TransAddress) CustomMarshalTextAll(fct bool, label string) ([]byte, error) {
 	var out bytes.Buffer
-	out.WriteString(fmt.Sprintf("   %8s:", label))
-	v := ConvertDecimalToPaddedString(ta.Amount)
-	fill := 8 - len(v) + strings.Index(v, ".") + 1
-	fstr := fmt.Sprintf("%%%vs%%%vs ", 18-fill, fill)
+
+	out.WriteString(fmt.Sprintf("   %8s: ", label))
+	v := ConvertDecimalToString(ta.Amount)
+	fill := 9 - len(v) + strings.Index(v, ".")
+	fstr := fmt.Sprintf("%%%vs%%%vs ", 16-fill, fill)
 	out.WriteString(fmt.Sprintf(fstr, v, ""))
 	if fct {
 		out.WriteString(ConvertFctAddressToUserStr(ta.Address))
-	}else{
+	} else {
 		out.WriteString(ConvertECAddressToUserStr(ta.Address))
 	}
-	str := fmt.Sprintf("\n                  %016x %038s\n\n", ta.Amount, string(hex.EncodeToString(ta.GetAddress().Bytes())))
+
+	// Getting rid of printing the hex data for transactions... This has become more
+	// user visable.
+	//
+	//	str := fmt.Sprintf("\n                  %016x %038s\n\n", ta.Amount, string(hex.EncodeToString(ta.GetAddress().Bytes())))
+	str := "\n"
 	out.WriteString(str)
 	return out.Bytes(), nil
 }
 
 func (ta TransAddress) CustomMarshalText2(label string) ([]byte, error) {
-	return ta.CustomMarshalTextAll(true,label)
+	return ta.CustomMarshalTextAll(true, label)
 }
 
 func (ta TransAddress) CustomMarshalTextEC2(label string) ([]byte, error) {
-	return ta.CustomMarshalTextAll(false,label)
+	return ta.CustomMarshalTextAll(false, label)
 }
