@@ -9,6 +9,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"time"
+	"encoding/hex"
 )
 
 type ITransaction interface {
@@ -69,9 +70,14 @@ type ITransaction interface {
 
 	// Calculate the fee for a transaction, given the specified exchange rate.
 	CalculateFee(factoshisPerEC uint64) (uint64, error)
+	
+	SetBlockHeight(int)
+	GetBlockHeight() int
 }
 
 type Transaction struct {
+	TransactionID  IHash 		  // Unique hash for this transaction
+	BlockHeight    int		      // Used internally.  You can't rely on this being set
 	// version     uint64         Version of transaction. Hardcoded, naturally.
 	MilliTimestamp uint64
 	// #inputs     uint8          number of inputs
@@ -82,17 +88,23 @@ type Transaction struct {
 	OutECs    []IOutECAddress
 	RCDs      []IRCD
 	SigBlocks []ISignatureBlock
-
-	MarshalSig IHash // cache to avoid unnecessary marshal/unmarshals
 }
 
 var _ ITransaction = (*Transaction)(nil)
 var _ Printable = (*Transaction)(nil)
 
+func (t *Transaction) SetBlockHeight(i int) {
+	t.BlockHeight = i
+}
+func (t *Transaction) GetBlockHeight() int {
+	return t.BlockHeight 
+}
+
+
 // Clears caches if they are no long valid.
 func (t *Transaction) clearCaches() {
 	return
-	t.MarshalSig = nil
+	t.TransactionID = nil
 }
 
 func (Transaction) GetVersion() uint64 {
@@ -107,12 +119,13 @@ func (t Transaction) GetHash() IHash {
 	return Sha(m)
 }
 
-func (t Transaction) GetSigHash() IHash {
+func (t *Transaction) GetSigHash() IHash {
 	m, err := t.MarshalBinarySig()
 	if err != nil {
 		return nil
 	}
-	return Sha(m)
+	t.TransactionID = Sha(m)
+	return t.TransactionID
 }
 
 
@@ -677,6 +690,7 @@ func (t *Transaction) AddECOutput(ecoutput IAddress, amount uint64) {
 // Marshal to text.  Largely a debugging thing.
 func (t *Transaction) CustomMarshalText() (text []byte, err error) {
 	data, err := t.MarshalBinary()
+	transID, err := t.MarshalBinarySig()
 	if err != nil {
 		return nil, err
 	}
@@ -684,6 +698,8 @@ func (t *Transaction) CustomMarshalText() (text []byte, err error) {
 	out.WriteString(fmt.Sprintf("Transaction (size %d):\n", len(data)))
 	out.WriteString("                 Version: ")
 	WriteNumber64(&out, uint64(t.GetVersion()))
+	out.WriteString("\n          Transaction ID: ")
+	out.WriteString(hex.EncodeToString(transID))
 	out.WriteString("\n          MilliTimestamp: ")
 	WriteNumber64(&out, uint64(t.MilliTimestamp))
 	ts := time.Unix(0, int64(t.MilliTimestamp*1000000))
