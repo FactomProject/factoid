@@ -9,7 +9,6 @@ import (
 	"encoding/binary"
 	"fmt"
 	"time"
-	"encoding/hex"
 )
 
 type ITransaction interface {
@@ -690,7 +689,6 @@ func (t *Transaction) AddECOutput(ecoutput IAddress, amount uint64) {
 // Marshal to text.  Largely a debugging thing.
 func (t *Transaction) CustomMarshalText() (text []byte, err error) {
 	data, err := t.MarshalBinary()
-	transID, err := t.MarshalBinarySig()
 	if err != nil {
 		return nil, err
 	}
@@ -699,7 +697,7 @@ func (t *Transaction) CustomMarshalText() (text []byte, err error) {
 	out.WriteString("                 Version: ")
 	WriteNumber64(&out, uint64(t.GetVersion()))
 	out.WriteString("\n          Transaction ID: ")
-	out.WriteString(hex.EncodeToString(transID))
+	out.WriteString(t.GetSigHash().String())
 	out.WriteString("\n          MilliTimestamp: ")
 	WriteNumber64(&out, uint64(t.MilliTimestamp))
 	ts := time.Unix(0, int64(t.MilliTimestamp*1000000))
