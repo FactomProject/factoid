@@ -695,7 +695,7 @@ func (t *Transaction) CustomMarshalText() (text []byte, err error) {
 	var out bytes.Buffer
 	out.WriteString(fmt.Sprintf("Transaction (size %d):\n", len(data)))
 	out.WriteString("                 Version: ")
-	WriteNumber64(&out, uint64(t.GetVersion()))
+	out.WriteString(fmt.Sprintf("%v",t.GetVersion()))
 	out.WriteString("\n          Transaction ID: ")
 	out.WriteString(t.GetSigHash().String())
 	out.WriteString("\n          MilliTimestamp: ")
