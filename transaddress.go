@@ -31,8 +31,8 @@ type ITransAddress interface {
 }
 
 type TransAddress struct {
-	Amount  uint64
-	Address IAddress
+	Amount      uint64
+	Address     IAddress
 	UserAddress string
 }
 
@@ -43,7 +43,7 @@ func (t *TransAddress) SetUserAddress(v string) {
 }
 
 func (t *TransAddress) GetUserAddress() string {
-	return t.UserAddress 
+	return t.UserAddress
 }
 
 // Not useful on TransAddress objects
@@ -149,15 +149,15 @@ func (ta TransAddress) CustomMarshalTextAll(fct bool, label string) ([]byte, err
 	var out bytes.Buffer
 	out.WriteString(fmt.Sprintf("   %8s: ", label))
 	v := strings.TrimSpace(ConvertDecimal(ta.Amount))
-	fill := 9 - len(v) + strings.Index(v, ".") 
+	fill := 9 - len(v) + strings.Index(v, ".")
 	fstr := fmt.Sprintf("%%%vs%%%vs ", 16-fill, fill)
 	out.WriteString(fmt.Sprintf(fstr, v, ""))
 	if fct {
 		out.WriteString(ConvertFctAddressToUserStr(ta.Address))
-	}else{
+	} else {
 		out.WriteString(ConvertECAddressToUserStr(ta.Address))
 	}
-	
+
 	// Getting rid of printing the hex data for transactions... This has become more
 	// user visable.
 	//
@@ -168,9 +168,9 @@ func (ta TransAddress) CustomMarshalTextAll(fct bool, label string) ([]byte, err
 }
 
 func (ta TransAddress) CustomMarshalText2(label string) ([]byte, error) {
-	return ta.CustomMarshalTextAll(true,label)
+	return ta.CustomMarshalTextAll(true, label)
 }
 
 func (ta TransAddress) CustomMarshalTextEC2(label string) ([]byte, error) {
-	return ta.CustomMarshalTextAll(false,label)
+	return ta.CustomMarshalTextAll(false, label)
 }
