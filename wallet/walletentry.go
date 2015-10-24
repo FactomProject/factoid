@@ -15,6 +15,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	fct "github.com/FactomProject/factoid"
+	"crypto/subtle"
 )
 
 type IWalletEntry interface {
@@ -31,8 +32,8 @@ type IWalletEntry interface {
 	GetName() []byte
 	// Get the Public Key by its index
 	GetKey(i int) []byte
-	// Get the Private Key by its index
-	GetPrivKey(i int) []byte
+	// Get the Private Key by its index and supply the key to decrypt it
+	GetPrivKey(i int, aesKey []byte) []byte
 	// Set the name for this address
 	SetName([]byte)
 	// Get the address defined by the RCD for this wallet entry.
@@ -279,8 +280,15 @@ func (we *WalletEntry) GetKey(i int) []byte {
 	return we.public[i]
 }
 
-func (we *WalletEntry) GetPrivKey(i int) []byte {
-	return we.private[i]
+func (we *WalletEntry) GetPrivKey(i int, aesKey []byte) []byte {
+	// Check to see if the aes key passed in is a 32 bytes of zeros. 
+	// If so, we will treat the private key as not being encrypted.
+	if (1 == subtle.ConstantTimeCompare(aesKey, fct.ZERO_HASH)){
+		return we.private[i]
+	}else{
+		return we.private[i]
+	}
+	
 }
 
 func (w *WalletEntry) SetName(name []byte) {

@@ -6,6 +6,9 @@ package factoid
 
 import (
 	"bytes"
+	"crypto/aes"
+	"crypto/cipher"
+	"crypto/rand"
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
@@ -425,4 +428,75 @@ func EncodeVarIntBTC(out *bytes.Buffer, v uint64) error {
 		}
 	}
 	return nil
+}
+
+// --------------------------------------------------------
+// ------------Wallet Encryption Helper Functions----------
+// --------------------------------------------------------
+
+// These functions are used to encrypt and decrypt data
+// held in the wallet db files.
+
+//This function takes in a slice of bytes to be encrypted, as well as the 32 byte long
+//AES key to encrypt it to.
+//It returns the encrypted data.  The encrypted data has an unencrypted random Initialization Vector
+//prepended to it (16 bytes).
+func EncryptWalletItem(itemToEncrypt []byte, aesKey []byte) (encryptedItem []byte, err error) {
+	iv := make([]byte, aes.BlockSize)
+	//the IV is a random number to prevent the first bytes of similar Factoid keys
+	//encrypted with the same AES key sharing the same first encrypted bytes
+	_, err = rand.Read(iv)
+	if err != nil {
+		return nil, err
+	}
+
+	return encryptAesWithIv(itemToEncrypt, aesKey, iv)
+}
+
+//This function takes in unencrypted data as well as an initialization vector.
+//It also takes in the 256 bit key used to encrypt it.
+//it returns the data encrypted with the IV prepended to it.
+
+func encryptAesWithIv(itemToEncrypt []byte, aesKey []byte, iv []byte) (encryptedData []byte, err error) {
+	if len(aesKey) != 32 {
+		return nil, fmt.Errorf("AES key expected to be 32 bytes long")
+	}
+	block, err := aes.NewCipher(aesKey)
+	if err != nil {
+		return nil, err
+	}
+
+	encryptedData = make([]byte, len(itemToEncrypt)+aes.BlockSize)
+	copy(encryptedData, iv)
+
+	aesEncrypter := cipher.NewCFBEncrypter(block, iv[:])
+	//encrypt the data but leave the IV in place
+	aesEncrypter.XORKeyStream(encryptedData[aes.BlockSize:], itemToEncrypt[:])
+
+	return encryptedData, nil
+}
+
+//This function takes in a slice of bytes which was encrypted with the 32 byte long
+//AES key, also passed in.  It expects the first 16 bytes to be the unecrypted IV.
+//It returns the decrypted data with the IV stripped off.
+//This code cannot tell if the decrypting key did not match the encrypting key.
+func DecryptWalletItem(itemToDecrypt []byte, aesKey []byte) (decryptedItem []byte, err error) {
+	block, err := aes.NewCipher(aesKey)
+	if err != nil {
+		return nil, err
+	}
+	//check to make sure at least something the size of an IV is prepended
+	if len(itemToDecrypt) < aes.BlockSize {
+		return nil, fmt.Errorf("Encrypted data is too short.")
+	}
+	iv := itemToDecrypt[:aes.BlockSize]
+
+	aesDecrypter := cipher.NewCFBDecrypter(block, iv)
+	//decrypt in place
+	aesDecrypter.XORKeyStream(itemToDecrypt[:], itemToDecrypt[:])
+	decryptedItem = make([]byte, (len(itemToDecrypt) - aes.BlockSize))
+	//strip off the IV
+	copy(decryptedItem, itemToDecrypt[len(iv):])
+
+	return decryptedItem, nil
 }

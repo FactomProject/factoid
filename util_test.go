@@ -6,9 +6,10 @@ package factoid
 
 import (
 	"bytes"
+	"encoding/hex"
 	"fmt"
-
 	"math/rand"
+	"reflect"
 	"testing"
 )
 
@@ -90,5 +91,62 @@ func TestVariable_Integers(test *testing.T) {
 				}
 			}
 		}
+	}
+}
+
+// --------------------------------------------------------
+// ------------Wallet Encryption Test Functions----------
+// --------------------------------------------------------
+
+//compare encryption functions against test vectors
+
+func TestAesAgainstStandard(test *testing.T) {
+	//http://www.inconteam.com/software-development/41-encryption/55-aes-test-vectors#aes-cfb-256
+	//AES CFB128 256-bit encryption mode
+	testkey, _ := hex.DecodeString("603deb1015ca71be2b73aef0857d77811f352c073b6108d72d9810a30914dff4")
+	testiv, _ := hex.DecodeString("DF10132415E54B92A13ED0A8267AE2F9")
+	testclear, _ := hex.DecodeString("f69f2445df4f9b17ad2b417be66c3710")
+	testenc, _ := hex.DecodeString("75a385741ab9cef82031623d55b1e471")
+	testexpected := append(testiv, testenc...)
+	//test encryption
+	enctest, err := encryptAesWithIv(testclear, testkey, testiv)
+	if nil != err {
+		fmt.Println(err)
+		test.Fail()
+	}
+	if !reflect.DeepEqual(testexpected, enctest) {
+		fmt.Println("Encrypted AES data does not match test vectors")
+		test.Fail()
+	}
+	//test decryption
+	dnctest, err := DecryptWalletItem(testexpected, testkey)
+	if nil != err {
+		fmt.Println(err)
+		test.Fail()
+	}
+	if !reflect.DeepEqual(testclear, dnctest) {
+		fmt.Println("Decrypted AES data does not match test vectors")
+		test.Fail()
+	}
+}
+
+//see if something can be decrypted after being encrypted
+
+func TestAesEncDecLoop(test *testing.T) {
+	testkey, _ := hex.DecodeString("deadbeeff00dfacecafef00dbeeffab1eddecade2009badd00dbeadfaceb1ade")
+	sample := []byte("Here is a lot of text that will be encrypted then decrypted again. It is arbitrarily long.")
+	encrypted, err := EncryptWalletItem(sample, testkey)
+	if nil != err {
+		fmt.Println(err)
+		test.Fail()
+	}
+	decSample, err := DecryptWalletItem(encrypted, testkey)
+	if nil != err {
+		fmt.Println(err)
+		test.Fail()
+	}
+	if !reflect.DeepEqual(decSample, sample) {
+		fmt.Println("Round trip AES decryption does not match encryption")
+		test.Fail()
 	}
 }
