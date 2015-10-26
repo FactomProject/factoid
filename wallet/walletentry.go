@@ -28,12 +28,16 @@ type IWalletEntry interface {
 	// Add a public and private key.  USE WITH CAUTION! You change
 	// the hash and thus the address returned by the wallet entry!
 	AddKey(public, private []byte)
+	// Add a public and private key, but encrypt it
+	AddEncKey(public, private []byte, aesKey []byte)
 	// Get the name for this address
 	GetName() []byte
 	// Get the Public Key by its index
 	GetKey(i int) []byte
 	// Get the Private Key by its index and supply the key to decrypt it
-	GetPrivKey(i int, aesKey []byte) []byte
+	GetEncPrivKey(i int, aesKey []byte) []byte
+	// Get the Private Key, but assume no encryption
+	GetPrivKey(i int) []byte
 	// Set the name for this address
 	SetName([]byte)
 	// Get the address defined by the RCD for this wallet entry.
@@ -132,12 +136,29 @@ func (w1 *WalletEntry) IsEqual(w fct.IBlock) []fct.IBlock {
 		return append(r, w1)
 	}
 
+	if 0 != bytes.Compare(w1.name, w2.name) {
+		r := make([]fct.IBlock, 0, 3)
+		return append(r, w1)
+	}
+
+	if nil != w1.rcd.IsEqual(w2.rcd) {
+		r := make([]fct.IBlock, 0, 3)
+		return append(r, w1)
+	}
+
 	for i, public := range w1.public {
 		if bytes.Compare(w2.public[i], public) != 0 {
 			r := make([]fct.IBlock, 0, 3)
 			return append(r, w1)
 		}
 	}
+	for i, private := range w1.private {
+		if bytes.Compare(w2.private[i], private) != 0 {
+			r := make([]fct.IBlock, 0, 3)
+			return append(r, w1)
+		}
+	}
+	
 	return nil
 }
 
@@ -169,7 +190,7 @@ func (w *WalletEntry) UnmarshalBinaryData(data []byte) ([]byte, error) {
 	}
 
 	blen, data := data[0], data[1:]
-	w.public = make([][]byte, len, len)
+	w.public = make([][]byte, blen, blen)
 	for i := 0; i < int(blen); i++ {
 		w.public[i] = make([]byte, fct.ADDRESS_LENGTH, fct.ADDRESS_LENGTH)
 		copy(w.public[i], data[:fct.ADDRESS_LENGTH])
@@ -177,11 +198,12 @@ func (w *WalletEntry) UnmarshalBinaryData(data []byte) ([]byte, error) {
 	}
 
 	blen, data = data[0], data[1:]
-	w.private = make([][]byte, len, len)
+	w.private = make([][]byte, blen, blen)
 	for i := 0; i < int(blen); i++ {
-		w.private[i] = make([]byte, fct.PRIVATE_LENGTH, fct.PRIVATE_LENGTH)
-		copy(w.private[i], data[:fct.PRIVATE_LENGTH])
-		data = data[fct.PRIVATE_LENGTH:]
+		keylen, data := data[0], data[1:]
+		w.private[i] = make([]byte, keylen, keylen)
+		copy(w.private[i], data[:keylen])
+		data = data[keylen:]
 	}
 	return data, nil
 }
@@ -215,6 +237,7 @@ func (w WalletEntry) MarshalBinary() ([]byte, error) {
 	}
 	out.WriteByte(byte(len(w.private)))
 	for _, private := range w.private {
+		out.WriteByte(byte(len(private)))
 		out.Write(private)
 	}
 	return out.Bytes(), nil
@@ -259,7 +282,7 @@ func (w WalletEntry) GetRCD() fct.IRCD {
 	return w.rcd
 }
 
-func (w *WalletEntry) AddKey(public, private []byte) {
+func (w *WalletEntry) AddEncKey(public, private []byte, aesKey []byte) {
 	if len(public) != fct.ADDRESS_LENGTH || (len(private) != fct.ADDRESS_LENGTH &&
 		                    len(private) != fct.PRIVATE_LENGTH) {
 		panic(fmt.Sprintf("Bad Keys presented to AddKey.  Should not happen."+
@@ -271,24 +294,46 @@ func (w *WalletEntry) AddKey(public, private []byte) {
 	copy(pr[:32], private)
 	copy(pr[32:], public)
 	w.public = append(w.public, pu)
-	w.private = append(w.private, pr)
-
 	w.rcd = fct.NewRCD_1(pu)
+
+	// Check to see if the aes key passed in is 32 bytes of zeros. 
+	// If so, we will treat the private key as not being encrypted.
+	if (1 == subtle.ConstantTimeCompare(aesKey, fct.ZERO_HASH)){  //unencrypted
+		w.private = append(w.private, pr)
+	}else{ //encryption key given
+		encryptedKey, err := fct.EncryptWalletItem(pr, aesKey)
+		if nil != err{
+			panic(err)
+		}
+		w.private = append(w.private, encryptedKey)
+	}
+}
+
+// Add a key and disregard encryption
+func (w *WalletEntry) AddKey(public, private []byte) {
+	w.AddEncKey(public, private, fct.ZERO_HASH)
 }
 
 func (we *WalletEntry) GetKey(i int) []byte {
 	return we.public[i]
 }
 
-func (we *WalletEntry) GetPrivKey(i int, aesKey []byte) []byte {
+func (we *WalletEntry) GetEncPrivKey(i int, aesKey []byte) []byte {
 	// Check to see if the aes key passed in is a 32 bytes of zeros. 
 	// If so, we will treat the private key as not being encrypted.
-	if (1 == subtle.ConstantTimeCompare(aesKey, fct.ZERO_HASH)){
+	if (1 == subtle.ConstantTimeCompare(aesKey, fct.ZERO_HASH)){  //unencrypted
 		return we.private[i]
-	}else{
-		return we.private[i]
+	}else{  //encryption key given
+		decryptedKey, err := fct.DecryptWalletItem(we.private[i], aesKey)
+		if nil != err{
+			panic(err)
+		}
+		return decryptedKey
 	}
-	
+}
+
+func (we *WalletEntry) GetPrivKey(i int) []byte {
+	return we.GetEncPrivKey(i, fct.ZERO_HASH)
 }
 
 func (w *WalletEntry) SetName(name []byte) {

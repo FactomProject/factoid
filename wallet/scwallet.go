@@ -175,7 +175,7 @@ func (w *SCWallet) SignCommit(we IWalletEntry, data []byte) []byte {
 	pub := new([fct.ADDRESS_LENGTH]byte)
 	copy(pub[:], we.GetKey(0))
 	pri := new([fct.PRIVATE_LENGTH]byte)
-	copy(pri[:], we.GetPrivKey(0, fct.ZERO_HASH))
+	copy(pri[:], we.GetPrivKey(0))
 	sig := ed25519.Sign(pri, data)
 	r := append(data, pub[:]...)
 	r = append(r, sig[:]...)

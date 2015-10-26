@@ -6,6 +6,7 @@ package wallet
 
 import (
 	"encoding/binary"
+	"encoding/hex"
 	"fmt"
 	"github.com/FactomProject/ed25519"
 	"github.com/FactomProject/factoid"
@@ -54,3 +55,46 @@ func Test_create_walletentry(test *testing.T) {
 		test.Fail()
 	}
 }
+
+
+func Test_create_encrypted_walletentry(test *testing.T) {
+	testkey, _ := hex.DecodeString("deadbeeff00dfacecafef00dbeeffab1eddecade2009badd00dbeadfaceb1ade")
+	w := new(SCWallet) // make me a wallet
+	w.Init()
+	w.NewSeed([]byte("lkdfsgjlagkjlasd"))
+	we := new(WalletEntry)
+	rcd := new(factoid.RCD_1)
+	name := "John Smith"
+	adrtype := "fct"
+	pub, pri, err := w.generateKey()
+
+	if err != nil {
+		factoid.Prtln("Generate Failed")
+		test.Fail()
+	}
+
+	we.SetRCD(rcd)
+	we.AddEncKey(pub, pri, testkey)
+	we.SetName([]byte(name))
+	we.SetType(adrtype)
+
+	data, err := we.MarshalBinary()
+	if err != nil {
+		test.Fail()
+	}
+
+	w2 := new(WalletEntry)
+
+	data, err = w2.UnmarshalBinaryData(data)
+	if err != nil {
+		test.Fail()
+	}
+
+	if we.IsEqual(w2) != nil {
+		test.Fail()
+	}
+}
+
+
+
+
