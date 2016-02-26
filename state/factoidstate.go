@@ -12,7 +12,7 @@ import (
 	"fmt"
 	"time"
 
-	cp "github.com/FactomProject/FactomCode/controlpanel"
+	//cp "github.com/FactomProject/FactomCode/controlpanel"
 	fct "github.com/FactomProject/factoid"
 	"github.com/FactomProject/factoid/block"
 	db "github.com/FactomProject/factoid/database"
@@ -323,12 +323,12 @@ func (fs *FactoidState) LoadState() error {
 	// If there is no head for the Factoids in the database, we have an
 	// uninitialized database.  We need to add the Genesis Block. TODO
 	if cblk == nil {
-		cp.CP.AddUpdate(
-			"Creating Factoid Genesis Block", // tag
-			"info", // Category
-			"Creating the Factoid Genesis Block", // Title
-			"", // Msg
-			60) // Expire
+		/* cp.CP.AddUpdate(
+		"Creating Factoid Genesis Block", // tag
+		"info", // Category
+		"Creating the Factoid Genesis Block", // Title
+		"", // Msg
+		60) // Expire */
 		//gb := block.GetGenesisFBlock(fs.GetTimeMilli(), 1000000,10,200000000000)
 		gb := block.GetGenesisFBlock()
 		fs.PutTransactionBlock(gb.GetHash(), gb)
