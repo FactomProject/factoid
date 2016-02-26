@@ -10,12 +10,13 @@ package state
 import (
 	"bytes"
 	"fmt"
+	"time"
+
 	cp "github.com/FactomProject/FactomCode/controlpanel"
 	fct "github.com/FactomProject/factoid"
 	"github.com/FactomProject/factoid/block"
 	db "github.com/FactomProject/factoid/database"
 	"github.com/FactomProject/factoid/wallet"
-	"time"
 )
 
 var _ = time.Sleep
@@ -159,14 +160,14 @@ func (fs *FactoidState) AddTransactionBlock(blk block.IFBlock) error {
 	}
 	fs.currentBlock = blk
 	fs.SetFactoshisPerEC(blk.GetExchRate())
-
-	cp.CP.AddUpdate(
-		"FAddBlk", // tag
-		"status",  // Category
-		fmt.Sprintf("Added Factoid Block %d", blk.GetDBHeight()), // Title
-		"", // message
-		60) // sixty seconds should be enough
-
+	/*
+		cp.CP.AddUpdate(
+			"FAddBlk", // tag
+			"status",  // Category
+			fmt.Sprintf("Added Factoid Block %d", blk.GetDBHeight()), // Title
+			"", // message
+			60) // sixty seconds should be enough
+	*/
 	return nil
 }
 
@@ -231,13 +232,13 @@ func (fs *FactoidState) UpdateTransaction(trans fct.ITransaction) error {
 	}
 
 	fs.numTransactions++
-	cp.CP.AddUpdate(
+	/*	cp.CP.AddUpdate(
 		"transprocessed", // tag
 		"status",         // Category
 		fmt.Sprintf("Factoid Transactions Processed: %d", fs.numTransactions), // Title
 		"", // Message
 		0)  // When to expire the message; 0 is never
-
+	*/
 	return nil
 }
 
@@ -273,13 +274,13 @@ func (fs *FactoidState) ProcessEndOfBlock() {
 		fs.currentBlock.SetPrevKeyMR(hash.Bytes())
 		fs.currentBlock.SetPrevLedgerKeyMR(hash2.Bytes())
 	}
-
-	cp.CP.AddUpdate(
-		"blockheight", // tag
-		"status",      // Category
-		fmt.Sprintf("Directory Block Height: %d", fs.GetDBHeight()), // Title
-		"", // Msg
-		0)
+	/*
+		cp.CP.AddUpdate(
+			"blockheight", // tag
+			"status",      // Category
+			fmt.Sprintf("Directory Block Height: %d", fs.GetDBHeight()), // Title
+			"", // Msg
+			0)*/
 }
 
 // End of Block means packing the current block away, and setting
@@ -306,14 +307,14 @@ func (fs *FactoidState) ProcessEndOfBlock2(nextBlkHeight uint32) {
 		fs.currentBlock.SetPrevKeyMR(hash.Bytes())
 		fs.currentBlock.SetPrevLedgerKeyMR(hash2.Bytes())
 	}
-
-	cp.CP.AddUpdate(
-		"blockheight", // tag
-		"status",      // Category
-		fmt.Sprintf("Directory Block Height: %d", nextBlkHeight), // Title
-		"", // Msg
-		0)
-
+	/*
+		cp.CP.AddUpdate(
+			"blockheight", // tag
+			"status",      // Category
+			fmt.Sprintf("Directory Block Height: %d", nextBlkHeight), // Title
+			"", // Msg
+			0)
+	*/
 }
 
 func (fs *FactoidState) LoadState() error {
@@ -367,12 +368,13 @@ func (fs *FactoidState) LoadState() error {
 
 		blk = tblk
 		time.Sleep(time.Second / 100)
-		cp.CP.AddUpdate(
-			"loadState",
-			"status", // Category
-			"Loading State",
-			fmt.Sprintf("Scanning backwards. Block: %d", blk.GetDBHeight()),
-			0)
+		/*
+			cp.CP.AddUpdate(
+				"loadState",
+				"status", // Category
+				"Loading State",
+				fmt.Sprintf("Scanning backwards. Block: %d", blk.GetDBHeight()),
+				0)*/
 	}
 
 	// Now run forward, and build our accounting
@@ -391,12 +393,13 @@ func (fs *FactoidState) LoadState() error {
 			return err
 		}
 		time.Sleep(time.Second / 100)
-		cp.CP.AddUpdate(
-			"loadState",
-			"status", // Category
-			"Loading State",
-			fmt.Sprintf("Loading and Processing. Block: %d", blk.GetDBHeight()),
-			0)
+		/*
+			cp.CP.AddUpdate(
+				"loadState",
+				"status", // Category
+				"Loading State",
+				fmt.Sprintf("Loading and Processing. Block: %d", blk.GetDBHeight()),
+				0) */
 	}
 
 	fs.dbheight = blk.GetDBHeight()
