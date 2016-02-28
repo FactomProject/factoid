@@ -30,28 +30,28 @@ func MnemonicStringToPrivateKey(mnemonic string) ([]byte, error) {
 
 func HumanReadableFactoidPrivateKeyToPrivateKey(human string) ([]byte, error) {
 	human = strings.TrimSpace(human)
-	base, version, err := base58.CheckDecode(human)
+	base, v1, v2, err := base58.CheckDecode(human)
 	if err != nil {
 		return nil, err
 	}
 
-	if version != 0x64 || base[0] != 0x78 {
+	if v1 != 0x64 || v2 != 0x78 {
 		return nil, fmt.Errorf("Invalid prefix")
 	}
 
-	return base[1:], nil
+	return base, nil
 }
 
 func HumanReadableECPrivateKeyToPrivateKey(human string) ([]byte, error) {
 	human = strings.TrimSpace(human)
-	base, version, err := base58.CheckDecode(human)
+	base, v1, v2, err := base58.CheckDecode(human)
 	if err != nil {
 		return nil, err
 	}
 
-	if version != 0x5d || base[0] != 0xb6 {
+	if v1 != 0x5d || v2 != 0xb6 {
 		return nil, fmt.Errorf("Invalid prefix")
 	}
 
-	return base[1:], nil
+	return base, nil
 }
