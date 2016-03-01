@@ -3,7 +3,7 @@ package factoid
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/davecgh/go-spew/spew"
+	"github.com/FactomProject/go-spew/spew"
 )
 
 type JSONable interface {
