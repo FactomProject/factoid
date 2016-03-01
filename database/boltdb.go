@@ -11,7 +11,7 @@ import (
 	"fmt"
 	fct "github.com/FactomProject/factoid"
 
-	"github.com/boltdb/bolt"
+	"github.com/FactomProject/bolt"
 )
 
 var _ = hex.EncodeToString
