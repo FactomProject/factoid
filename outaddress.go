@@ -49,5 +49,6 @@ func NewOutAddress(address IAddress, amount uint64) IOutAddress {
 	oa := new(OutAddress)
 	oa.Amount = amount
 	oa.Address = address
+	oa.UserAddress = ConvertFctAddressToUserStr(address)
 	return oa
 }

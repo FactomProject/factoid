@@ -121,16 +121,14 @@ func (a SignatureBlock) MarshalBinary() ([]byte, error) {
 func (s SignatureBlock) CustomMarshalText() ([]byte, error) {
 	var out bytes.Buffer
 
-	out.WriteString("Signature Block: \n")
 	for _, sig := range s.signatures {
 
-		out.WriteString(" signature: ")
 		txt, err := sig.CustomMarshalText()
 		if err != nil {
 			return nil, err
 		}
 		out.Write(txt)
-		out.WriteString("\n ")
+		out.WriteString("\n")
 
 	}
 

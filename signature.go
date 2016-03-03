@@ -88,7 +88,8 @@ func (s Signature) CustomMarshalText() ([]byte, error) {
 	var out bytes.Buffer
 
 	out.WriteString(" signature: ")
-	out.WriteString(hex.EncodeToString(s.signature[:]))
+	out.WriteString(hex.EncodeToString(s.signature[:32]))
+	out.WriteString("\n            "+hex.EncodeToString(s.signature[32:]))
 	out.WriteString("\n")
 
 	return out.Bytes(), nil

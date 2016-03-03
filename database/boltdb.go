@@ -37,7 +37,7 @@ type BoltDB struct {
 
 	db        *bolt.DB                // Pointer to the bolt db
 	instances map[[32]byte]fct.IBlock // Maps a hash to an instance of an IBlock
-	filename  string                  // location to write the db
+	filename  []byte                  // location to write the db
 }
 
 var _ IFDatabase = (*BoltDB)(nil)
@@ -121,10 +121,14 @@ func (b BoltDB) String() string {
 
 func (d *BoltDB) Clear(bucketList [][]byte) {
 
-	tdb, err := bolt.Open(d.filename, 0600, nil)
+	if d.filename == nil {
+		panic("Database has not been initialized properly; missing filename")
+	}
+	
+	tdb, err := bolt.Open(string(d.filename), 0600, nil)
 
 	if err != nil {
-		panic("Database " + d.filename + " was not found, and could not be created.")
+		panic("Database " + string(d.filename) + " was not found, and could not be created.")
 	}
 	defer tdb.Close()
 
@@ -163,12 +167,14 @@ func (d *BoltDB) Init(a ...interface{}) {
 	
 	if d.db == nil {
 		if len(a) < 3 {
-			d.filename = "/tmp/bolt_my.db"
+			if d.filename == nil {
+				d.filename = []byte("/tmp/bolt_my.db")
+			}
 		} else {
-			d.filename = a[2].(string)
+			d.filename = []byte(a[2].(string))
 		}
 
-		tdb, err := bolt.Open(d.filename, 0600, nil)
+		tdb, err := bolt.Open(string(d.filename), 0600, nil)
 		if err != nil {
 			panic("Database was not found, and could not be created.")
 		}

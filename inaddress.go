@@ -45,5 +45,6 @@ func NewInAddress(address IAddress, amount uint64) IInAddress {
 	oa := new(InAddress)
 	oa.Amount = amount
 	oa.Address = address
+	oa.UserAddress = ConvertFctAddressToUserStr(address)
 	return oa
 }

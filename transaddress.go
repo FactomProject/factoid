@@ -17,21 +17,34 @@ import (
 	"strings"
 )
 
+var _ = hex.EncodeToString
+
 type ITransAddress interface {
 	IBlock
 	GetAmount() uint64
 	SetAmount(uint64)
 	GetAddress() IAddress
 	SetAddress(IAddress)
+	GetUserAddress() string
+	SetUserAddress(string)
 	CustomMarshalText2(string) ([]byte, error)
 }
 
 type TransAddress struct {
 	Amount  uint64
 	Address IAddress
+	UserAddress string
 }
 
 var _ ITransAddress = (*TransAddress)(nil)
+
+func (t *TransAddress) SetUserAddress(v string) {
+	t.UserAddress = v
+}
+
+func (t *TransAddress) GetUserAddress() string {
+	return t.UserAddress 
+}
 
 // Not useful on TransAddress objects
 func (t *TransAddress) GetHash() IHash {
@@ -134,17 +147,22 @@ func (ta *TransAddress) SetAddress(address IAddress) {
 // Make this into somewhat readable text.
 func (ta TransAddress) CustomMarshalTextAll(fct bool, label string) ([]byte, error) {
 	var out bytes.Buffer
-	out.WriteString(fmt.Sprintf("   %8s:", label))
-	v := ConvertDecimal(ta.Amount)
-	fill := 8 - len(v) + strings.Index(v, ".") + 1
-	fstr := fmt.Sprintf("%%%vs%%%vs ", 18-fill, fill)
+	out.WriteString(fmt.Sprintf("   %8s: ", label))
+	v := strings.TrimSpace(ConvertDecimal(ta.Amount))
+	fill := 9 - len(v) + strings.Index(v, ".") 
+	fstr := fmt.Sprintf("%%%vs%%%vs ", 16-fill, fill)
 	out.WriteString(fmt.Sprintf(fstr, v, ""))
 	if fct {
 		out.WriteString(ConvertFctAddressToUserStr(ta.Address))
 	}else{
 		out.WriteString(ConvertECAddressToUserStr(ta.Address))
 	}
-	str := fmt.Sprintf("\n                  %016x %038s\n\n", ta.Amount, string(hex.EncodeToString(ta.GetAddress().Bytes())))
+	
+	// Getting rid of printing the hex data for transactions... This has become more
+	// user visable.
+	//
+	//	str := fmt.Sprintf("\n                  %016x %038s\n\n", ta.Amount, string(hex.EncodeToString(ta.GetAddress().Bytes())))
+	str := "\n"
 	out.WriteString(str)
 	return out.Bytes(), nil
 }

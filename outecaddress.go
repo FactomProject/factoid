@@ -52,5 +52,6 @@ func NewOutECAddress(address IAddress, amount uint64) IOutAddress {
 	oa := new(OutECAddress)
 	oa.Amount = amount
 	oa.Address = address
+	oa.UserAddress = ConvertECAddressToUserStr(address)
 	return oa
 }
