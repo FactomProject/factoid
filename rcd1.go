@@ -140,9 +140,9 @@ func (a RCD_1) MarshalBinary() ([]byte, error) {
 
 func (a RCD_1) CustomMarshalText() (text []byte, err error) {
 	var out bytes.Buffer
-	out.WriteString("RCD 1: ")
+	out.WriteString(" RCD 1: ")
 	WriteNumber8(&out, uint8(1)) // Type Zero Authorization
-	out.WriteString(" ")
+	out.WriteString("  ")
 	out.WriteString(hex.EncodeToString(a.publicKey[:]))
 	out.WriteString("\n")
 
