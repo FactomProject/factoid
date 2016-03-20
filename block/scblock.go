@@ -9,8 +9,9 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
-	fct "github.com/FactomProject/factoid"
 	"strings"
+
+	fct "github.com/FactomProject/factoid"
 )
 
 type IFBlock interface {
@@ -104,7 +105,10 @@ func (b *FBlock) GetCoinbaseTimestamp() int64 {
 
 func (b *FBlock) EndOfPeriod(period int) {
 	if period == 0 {
-		return
+		for i := 0; i < len(b.endOfPeriod); i++ {
+			b.endOfPeriod[i] = 0
+		}
+		//return
 	} else {
 		period = period - 1 // Make the period zero based.
 		b.endOfPeriod[period] = len(b.Transactions)
