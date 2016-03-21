@@ -125,7 +125,9 @@ type FactoidState struct {
 var _ IFactoidState = (*FactoidState)(nil)
 
 func (fs *FactoidState) EndOfPeriod(period int) {
-	fs.GetCurrentBlock().EndOfPeriod(period)
+	if fs.GetCurrentBlock() != nil {
+		fs.GetCurrentBlock().EndOfPeriod(period)
+	}
 }
 
 func (fs *FactoidState) GetWallet() wallet.ISCWallet {
