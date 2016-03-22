@@ -466,9 +466,9 @@ func (fs *FactoidState) GetTimeRounded() uint64 {
 }
 
 func (fs *FactoidState) GetTimeMilli() uint64 {
-	return uint64(100000)
+	//return uint64(100000)
 	//return fs.GetTimeRounded()
-	//return uint64(time.Now().UnixNano()) / 1000000 // 10^-9 >> 10^-3
+	return uint64(time.Now().UnixNano()) / 1000000 // 10^-9 >> 10^-3
 }
 
 func (fs *FactoidState) GetTime() uint64 {
