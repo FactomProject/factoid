@@ -357,7 +357,7 @@ func (b1 *FBlock) IsEqual(block fct.IBlock) []fct.IBlock {
 	//if b1.endOfPeriod != b2.endOfPeriod {
 	for i, k := range b1.endOfPeriod {
 		if k != b2.endOfPeriod[i] {
-			fmt.Println("Not equal: endOfPeriod", i,k)
+			fmt.Println("Not equal: endOfPeriod", i,k, b2.endOfPeriod[i] )
 			return append(r, b1)
 		}
 	}
