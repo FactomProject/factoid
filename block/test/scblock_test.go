@@ -184,3 +184,69 @@ func Test_create_block(test *testing.T) {
 	}
 
 }
+
+func Test_gen_block(test *testing.T) {
+	scb := block.GetGenesisFBlock()
+	
+	fmt.Println("SCB Period marks: ", scb.GetEndOfPeriod())
+	
+	data, err := scb.MarshalBinary()
+	if err != nil {
+		fmt.Println(err)
+		test.Fail()
+		return
+	}
+	scb2 := new(block.FBlock)
+	_, err = scb2.UnmarshalBinaryData(data)
+	
+	data2, err2 := scb.MarshalBinary()
+	if err2 != nil {
+		fmt.Println(err2)
+		test.Fail()
+		return
+	}
+	
+	result := bytes.Compare(data, data2)
+	fmt.Println("data2==data: ", result)
+	fmt.Println("SCB2 Period marks: ", scb2.GetEndOfPeriod())
+	//fmt.Println("fblock hex: ", hex.EncodeToString(data))
+	
+	scb3 := new(block.FBlock)
+	scb3.UnmarshalBinaryData(data2)
+	
+	data3, err3 := scb3.MarshalBinary()
+	if err3 != nil {
+		fmt.Println(err3)
+		test.Fail()
+		return
+	}
+	
+	result = bytes.Compare(data2, data3)
+	fmt.Println("data2==data3: ", result)
+	fmt.Println("SCB3 Period marks: ", scb3.GetEndOfPeriod())
+	
+	//fmt.Println("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n", scb2)
+	
+	if err != nil {
+		fmt.Println(err)
+		test.Fail()
+		return
+	}
+	//sc.Prtln("FIRST\n", scb, "SECOND\n", scb2)
+	if scb.IsEqual(scb2) != nil {
+		fmt.Println("NOT EQUAL: scb.IsEqual(scb2)")
+		//fmt.Println("scb: ", scb)
+		//fmt.Println()
+		//fmt.Println()
+		//fmt.Println("scb2: ", scb)
+		test.Fail()
+		return
+	}
+	
+	if scb3.IsEqual(scb2) != nil {
+		fmt.Println("NOT EQUAL: scb3.IsEqual(scb2)")
+		test.Fail()
+		return
+	}
+	
+}
