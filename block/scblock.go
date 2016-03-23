@@ -307,13 +307,7 @@ func (b *FBlock) UnmarshalBinaryData(data []byte) (newdata []byte, err error) {
 		}
 		b.Transactions[i] = trans
 	}
-	
-	for periodMark < len(b.endOfPeriod) {
-		data = data[1:]
-		b.endOfPeriod[periodMark] = int(cnt)
-		periodMark++
-	}
-	
+		
 	return data, nil
 
 }
@@ -657,7 +651,10 @@ func (b FBlock) CustomMarshalText() (text []byte, err error) {
 
 	for i, trans := range b.Transactions {
 
-		for markPeriod < 10 && i == b.endOfPeriod[markPeriod] {
+		for markPeriod < len(b.endOfPeriod) &&
+			b.endOfPeriod[markPeriod] > 0 && // Ignore if markers are not set
+			i == b.endOfPeriod[markPeriod] {
+			
 			out.WriteString(fmt.Sprintf("\n   End of Minute %d\n\n", markPeriod+1))
 			markPeriod++
 		}

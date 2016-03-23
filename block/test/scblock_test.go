@@ -118,7 +118,7 @@ func Test_create_block(test *testing.T) {
 	}
 	//sc.Prtln("FIRST\n",scb,"SECOND\n",scb2)
 	if scb.IsEqual(scb2) != nil {
-		fmt.Println(err)
+		fmt.Println(scb.IsEqual(scb2))
 		test.Fail()
 		return
 	}
