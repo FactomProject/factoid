@@ -456,19 +456,8 @@ func (fs *FactoidState) GetTransactionBlock(hash fct.IHash) block.IFBlock {
 	return transblk.(block.IFBlock)
 }
 
-func (fs *FactoidState) GetTimeRounded() uint64 {
-	//if directoryBlockInSeconds < 600 {
-	return uint64(time.Now().Round(time.Minute).Unix() / 60)
-	//}
-	//roundTime := time.Now().Round(time.Minute)
-	//minutesPassed := roundTime.Minute() - (roundTime.Minute()/10)*10
-	//return uint64(roundTime.Add(time.Duration((0-60*minutesPassed)*1000000000)).Unix() / 60)
-}
-
 func (fs *FactoidState) GetTimeMilli() uint64 {
-	return uint64(100000)
-	//return fs.GetTimeRounded()
-	//return uint64(time.Now().UnixNano()) / 1000000 // 10^-9 >> 10^-3
+	return uint64(time.Now().UnixNano()) / 1000000 // 10^-9 >> 10^-3
 }
 
 func (fs *FactoidState) GetTime() uint64 {

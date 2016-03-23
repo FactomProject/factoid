@@ -67,6 +67,7 @@ type IFBlock interface {
 	// TRANSACTION_PRIOR_LIMIT or after the TRANSACTION_POST_LIMIT are considered invalid
 	// for this block. -1 is returned if no coinbase transaction is found.
 	GetCoinbaseTimestamp() int64
+	SetCoinbaseTimestamp(uint64)
 }
 
 // FBlockHeader defines information about a block and is used in the bitcoin
@@ -101,6 +102,12 @@ func (b *FBlock) GetCoinbaseTimestamp() int64 {
 		return -1
 	}
 	return int64(b.Transactions[0].GetMilliTimestamp())
+}
+
+func (b *FBlock) SetCoinbaseTimestamp(ts uint64) {
+	if len(b.Transactions) > 0 {
+		b.Transactions[0].SetMilliTimestamp(ts)
+	}
 }
 
 func (b *FBlock) EndOfPeriod(period int) {
