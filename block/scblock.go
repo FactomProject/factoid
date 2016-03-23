@@ -61,6 +61,7 @@ type IFBlock interface {
 	// data point, we do not enforce much, other than order (the end of period one can't
 	// come before period 2.  We just adjust the periods accordingly.
 	EndOfPeriod(min int)
+	GetEndOfPeriod() [10]int
 
 	// Returns the milliTimestamp of the coinbase transaction.  This is used to validate
 	// the timestamps of transactions included in the block. Transactions prior to the
@@ -120,6 +121,9 @@ func (b *FBlock) EndOfPeriod(period int) {
 			b.endOfPeriod[i] = 0
 		}
 	}
+}
+func (b *FBlock) GetEndOfPeriod() [10]int {
+	return b.endOfPeriod
 }
 
 func (b *FBlock) GetTransactions() []fct.ITransaction {
@@ -307,7 +311,7 @@ func (b *FBlock) UnmarshalBinaryData(data []byte) (newdata []byte, err error) {
 		}
 		b.Transactions[i] = trans
 	}
-		
+
 	return data, nil
 
 }
@@ -654,7 +658,7 @@ func (b FBlock) CustomMarshalText() (text []byte, err error) {
 		for markPeriod < len(b.endOfPeriod) &&
 			b.endOfPeriod[markPeriod] > 0 && // Ignore if markers are not set
 			i == b.endOfPeriod[markPeriod] {
-			
+
 			out.WriteString(fmt.Sprintf("\n   End of Minute %d\n\n", markPeriod+1))
 			markPeriod++
 		}

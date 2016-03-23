@@ -5,16 +5,18 @@
 package block
 
 import (
+	"bytes"
 	"encoding/binary"
 	"fmt"
-	"github.com/FactomProject/ed25519"
-	sc "github.com/FactomProject/factoid"
-	"github.com/FactomProject/factoid/block"
-	"github.com/FactomProject/factoid/wallet"
 	"math/rand"
 	cv "strconv"
 	"testing"
 	"time"
+
+	"github.com/FactomProject/ed25519"
+	sc "github.com/FactomProject/factoid"
+	"github.com/FactomProject/factoid/block"
+	"github.com/FactomProject/factoid/wallet"
 )
 
 var _ = sc.Prt
@@ -38,7 +40,7 @@ func Test_create_block(test *testing.T) {
 	cb := w.CreateTransaction(uint64(time.Now().UnixNano() / 1000000))
 	scb.AddCoinbase(cb)
 
-	for i := 0; i < 3; i++ {
+	for i := 1; i < 13; i++ {
 		h0, err := w.GenerateFctAddress([]byte("test "+cv.Itoa(i)+"-0"), 1, 1)
 		if err != nil {
 			sc.Prtln("Error 1")
@@ -99,7 +101,23 @@ func Test_create_block(test *testing.T) {
 			test.Fail()
 			return
 		}
+
+		if i == 2 {
+			scb.EndOfPeriod(1)
+		} else if i == 5 {
+			scb.EndOfPeriod(2)
+		} else if i == 6 {
+			scb.EndOfPeriod(3)
+			scb.EndOfPeriod(4)
+		} else if i == 10 {
+			scb.EndOfPeriod(5)
+		} else if i == 12 {
+			scb.EndOfPeriod(6)
+		}
 	}
+
+	fmt.Println("POM: ", scb.GetEndOfPeriod())
+
 	data, err := scb.MarshalBinary()
 	if err != nil {
 		fmt.Println(err)
@@ -109,16 +127,31 @@ func Test_create_block(test *testing.T) {
 	scb2 := new(block.FBlock)
 	_, err = scb2.UnmarshalBinaryData(data)
 
-	fmt.Println("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n", scb2)
+	data2, err2 := scb.MarshalBinary()
+	if err2 != nil {
+		fmt.Println(err2)
+		test.Fail()
+		return
+	}
+
+	result := bytes.Compare(data, data2)
+	fmt.Println("result=", result)
+	fmt.Println("Period marks: ", scb2.GetEndOfPeriod())
+
+	//fmt.Println("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n", scb2)
 
 	if err != nil {
 		fmt.Println(err)
 		test.Fail()
 		return
 	}
-	//sc.Prtln("FIRST\n",scb,"SECOND\n",scb2)
+	//sc.Prtln("FIRST\n", scb, "SECOND\n", scb2)
 	if scb.IsEqual(scb2) != nil {
-		fmt.Println(scb.IsEqual(scb2))
+		fmt.Println("NOT EQUAL: scb.IsEqual(scb2)")
+		fmt.Println("scb: ", scb)
+		fmt.Println()
+		fmt.Println()
+		fmt.Println("scb2: ", scb)
 		test.Fail()
 		return
 	}
