@@ -311,8 +311,9 @@ func (b *FBlock) UnmarshalBinaryData(data []byte) (newdata []byte, err error) {
 		}
 		b.Transactions[i] = trans
 	}
-	if periodMark<len(b.endOfPeriod) {
+	for periodMark<len(b.endOfPeriod) {
 		b.endOfPeriod[periodMark]=int(cnt)
+		periodMark++
 	}
 	return data, nil
 

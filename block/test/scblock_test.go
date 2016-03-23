@@ -115,7 +115,13 @@ func Test_create_block(test *testing.T) {
 			scb.EndOfPeriod(6)
 		}
 	}
-
+	scb.EndOfPeriod(7)
+	scb.EndOfPeriod(8)
+	scb.EndOfPeriod(9)
+	scb.EndOfPeriod(10)
+	
+	
+	
 	fmt.Println("SCB Period marks: ", scb.GetEndOfPeriod())
 
 	data, err := scb.MarshalBinary()
