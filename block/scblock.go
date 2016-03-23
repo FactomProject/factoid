@@ -105,10 +105,7 @@ func (b *FBlock) GetCoinbaseTimestamp() int64 {
 
 func (b *FBlock) EndOfPeriod(period int) {
 	if period == 0 {
-		for i := 0; i < len(b.endOfPeriod); i++ {
-			b.endOfPeriod[i] = 0
-		}
-		//return
+		// Do nothing
 	} else {
 		period = period - 1 // Make the period zero based.
 		b.endOfPeriod[period] = len(b.Transactions)
@@ -169,8 +166,6 @@ func (b *FBlock) MarshalTrans() ([]byte, error) {
 
 func (b *FBlock) MarshalHeader() ([]byte, error) {
 	var out bytes.Buffer
-
-	b.EndOfPeriod(0) // Clean up end of minute markers, if needed.
 
 	out.Write(fct.FACTOID_CHAINID)
 
@@ -305,7 +300,13 @@ func (b *FBlock) UnmarshalBinaryData(data []byte) (newdata []byte, err error) {
 		}
 		b.Transactions[i] = trans
 	}
-
+	
+	for periodMark < len(b.endOfPeriod) {
+		data = data[1:]
+		b.endOfPeriod[periodMark] = int(cnt)
+		periodMark++
+	}
+	
 	return data, nil
 
 }
@@ -319,8 +320,6 @@ func (b *FBlock) UnmarshalBinary(data []byte) (err error) {
 // in order of the structures.  Largely used to test and debug, but
 // generally useful.
 func (b1 *FBlock) IsEqual(block fct.IBlock) []fct.IBlock {
-
-	b1.EndOfPeriod(0) // Clean up end of minute markers, if needed.
 
 	b2, ok := block.(*FBlock)
 
@@ -397,8 +396,6 @@ func (b *FBlock) GetLedgerKeyMR() fct.IHash {
 // Returns the LedgerMR for this block.
 func (b *FBlock) GetLedgerMR() fct.IHash {
 
-	b.EndOfPeriod(0) // Clean up end of minute markers, if needed.
-
 	hashes := make([]fct.IHash, 0, len(b.Transactions))
 	marker := 0
 	for i, trans := range b.Transactions {
@@ -424,8 +421,6 @@ func (b *FBlock) GetLedgerMR() fct.IHash {
 }
 
 func (b *FBlock) GetBodyMR() fct.IHash {
-
-	b.EndOfPeriod(0) // Clean up end of minute markers, if needed.
 
 	hashes := make([]fct.IHash, 0, len(b.Transactions))
 	marker := 0
@@ -615,8 +610,6 @@ func (b FBlock) String() string {
 // Marshal to text.  Largely a debugging thing.
 func (b FBlock) CustomMarshalText() (text []byte, err error) {
 	var out bytes.Buffer
-
-	b.EndOfPeriod(0) // Clean up end of minute markers, if needed.
 
 	out.WriteString("Transaction Block\n")
 	out.WriteString("  ChainID:       ")
