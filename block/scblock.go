@@ -311,7 +311,9 @@ func (b *FBlock) UnmarshalBinaryData(data []byte) (newdata []byte, err error) {
 		}
 		b.Transactions[i] = trans
 	}
-
+	if periodMark<len(b.endOfPeriod) {
+		b.endOfPeriod[periodMark]=int(cnt)
+	}
 	return data, nil
 
 }
@@ -353,8 +355,8 @@ func (b1 *FBlock) IsEqual(block fct.IBlock) []fct.IBlock {
 
 	//if b1.endOfPeriod != b2.endOfPeriod {
 	for i, k := range b1.endOfPeriod {
-		if k == b2.endOfPeriod[i] {
-			fmt.Println("Not equal: endOfPeriod")
+		if k != b2.endOfPeriod[i] {
+			fmt.Println("Not equal: endOfPeriod", i,k)
 			return append(r, b1)
 		}
 	}
