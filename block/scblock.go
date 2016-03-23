@@ -337,24 +337,32 @@ func (b1 *FBlock) IsEqual(block fct.IBlock) []fct.IBlock {
 
 	r := b1.BodyMR.IsEqual(b2.BodyMR)
 	if r != nil {
+		fmt.Println("Not equal: BodyMR")
 		return append(r, b1)
 	}
 	r = b1.PrevKeyMR.IsEqual(b2.PrevKeyMR)
 	if r != nil {
+		fmt.Println("Not equal: PrevKeyMR")
 		return append(r, b1)
 	}
 	r = b1.PrevLedgerKeyMR.IsEqual(b2.PrevLedgerKeyMR)
 	if r != nil {
+		fmt.Println("Not equal: PrevLedgerKeyMR")
 		return append(r, b1)
 	}
 
-	if b1.endOfPeriod != b2.endOfPeriod {
-		return append(r, b1)
+	//if b1.endOfPeriod != b2.endOfPeriod {
+	for i, k := range b1.endOfPeriod {
+		if k == b2.endOfPeriod[i] {
+			fmt.Println("Not equal: endOfPeriod")
+			return append(r, b1)
+		}
 	}
 
 	for i, trans := range b1.Transactions {
 		r := trans.IsEqual(b2.Transactions[i])
 		if r != nil {
+			fmt.Println("Not equal: Transactions: ", i)
 			return append(r, b1)
 		}
 	}
