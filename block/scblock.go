@@ -9,8 +9,9 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
-	fct "github.com/FactomProject/factoid"
 	"strings"
+
+	fct "github.com/FactomProject/factoid"
 )
 
 type IFBlock interface {
@@ -60,12 +61,14 @@ type IFBlock interface {
 	// data point, we do not enforce much, other than order (the end of period one can't
 	// come before period 2.  We just adjust the periods accordingly.
 	EndOfPeriod(min int)
+	GetEndOfPeriod() [10]int
 
 	// Returns the milliTimestamp of the coinbase transaction.  This is used to validate
 	// the timestamps of transactions included in the block. Transactions prior to the
 	// TRANSACTION_PRIOR_LIMIT or after the TRANSACTION_POST_LIMIT are considered invalid
 	// for this block. -1 is returned if no coinbase transaction is found.
 	GetCoinbaseTimestamp() int64
+	SetCoinbaseTimestamp(uint64)
 }
 
 // FBlockHeader defines information about a block and is used in the bitcoin
@@ -102,9 +105,15 @@ func (b *FBlock) GetCoinbaseTimestamp() int64 {
 	return int64(b.Transactions[0].GetMilliTimestamp())
 }
 
+func (b *FBlock) SetCoinbaseTimestamp(ts uint64) {
+	if len(b.Transactions) > 0 {
+		b.Transactions[0].SetMilliTimestamp(ts)
+	}
+}
+
 func (b *FBlock) EndOfPeriod(period int) {
 	if period == 0 {
-		return
+		// Do nothing
 	} else {
 		period = period - 1 // Make the period zero based.
 		b.endOfPeriod[period] = len(b.Transactions)
@@ -112,6 +121,9 @@ func (b *FBlock) EndOfPeriod(period int) {
 			b.endOfPeriod[i] = 0
 		}
 	}
+}
+func (b *FBlock) GetEndOfPeriod() [10]int {
+	return b.endOfPeriod
 }
 
 func (b *FBlock) GetTransactions() []fct.ITransaction {
@@ -137,6 +149,13 @@ func (b *FBlock) MarshalTrans() ([]byte, error) {
 	var periodMark = 0
 	var i int
 	var trans fct.ITransaction
+	
+	for _, v := range b.GetEndOfPeriod() {
+		if v == 0 {
+			return nil, fmt.Errorf("Factoid Block is incomplete.  Missing EOM markers detected: %v",b.endOfPeriod)
+		}
+	}
+	
 	for i, trans = range b.Transactions {
 
 		for periodMark < len(b.endOfPeriod) &&
@@ -165,8 +184,6 @@ func (b *FBlock) MarshalTrans() ([]byte, error) {
 
 func (b *FBlock) MarshalHeader() ([]byte, error) {
 	var out bytes.Buffer
-
-	b.EndOfPeriod(0) // Clean up end of minute markers, if needed.
 
 	out.Write(fct.FACTOID_CHAINID)
 
@@ -301,7 +318,10 @@ func (b *FBlock) UnmarshalBinaryData(data []byte) (newdata []byte, err error) {
 		}
 		b.Transactions[i] = trans
 	}
-
+	for periodMark<len(b.endOfPeriod) {
+		b.endOfPeriod[periodMark]=int(cnt)
+		periodMark++
+	}
 	return data, nil
 
 }
@@ -316,8 +336,6 @@ func (b *FBlock) UnmarshalBinary(data []byte) (err error) {
 // generally useful.
 func (b1 *FBlock) IsEqual(block fct.IBlock) []fct.IBlock {
 
-	b1.EndOfPeriod(0) // Clean up end of minute markers, if needed.
-
 	b2, ok := block.(*FBlock)
 
 	if !ok || // Not the right kind of IBlock
@@ -329,24 +347,32 @@ func (b1 *FBlock) IsEqual(block fct.IBlock) []fct.IBlock {
 
 	r := b1.BodyMR.IsEqual(b2.BodyMR)
 	if r != nil {
+		fmt.Println("Not equal: BodyMR")
 		return append(r, b1)
 	}
 	r = b1.PrevKeyMR.IsEqual(b2.PrevKeyMR)
 	if r != nil {
+		fmt.Println("Not equal: PrevKeyMR")
 		return append(r, b1)
 	}
 	r = b1.PrevLedgerKeyMR.IsEqual(b2.PrevLedgerKeyMR)
 	if r != nil {
+		fmt.Println("Not equal: PrevLedgerKeyMR")
 		return append(r, b1)
 	}
 
-	if b1.endOfPeriod != b2.endOfPeriod {
-		return append(r, b1)
+	//if b1.endOfPeriod != b2.endOfPeriod {
+	for i, k := range b1.endOfPeriod {
+		if k != b2.endOfPeriod[i] {
+			fmt.Println("Not equal: endOfPeriod", i,k, b2.endOfPeriod[i] )
+			return append(r, b1)
+		}
 	}
 
 	for i, trans := range b1.Transactions {
 		r := trans.IsEqual(b2.Transactions[i])
 		if r != nil {
+			fmt.Println("Not equal: Transactions: ", i)
 			return append(r, b1)
 		}
 	}
@@ -393,8 +419,6 @@ func (b *FBlock) GetLedgerKeyMR() fct.IHash {
 // Returns the LedgerMR for this block.
 func (b *FBlock) GetLedgerMR() fct.IHash {
 
-	b.EndOfPeriod(0) // Clean up end of minute markers, if needed.
-
 	hashes := make([]fct.IHash, 0, len(b.Transactions))
 	marker := 0
 	for i, trans := range b.Transactions {
@@ -420,8 +444,6 @@ func (b *FBlock) GetLedgerMR() fct.IHash {
 }
 
 func (b *FBlock) GetBodyMR() fct.IHash {
-
-	b.EndOfPeriod(0) // Clean up end of minute markers, if needed.
 
 	hashes := make([]fct.IHash, 0, len(b.Transactions))
 	marker := 0
@@ -612,8 +634,6 @@ func (b FBlock) String() string {
 func (b FBlock) CustomMarshalText() (text []byte, err error) {
 	var out bytes.Buffer
 
-	b.EndOfPeriod(0) // Clean up end of minute markers, if needed.
-
 	out.WriteString("Transaction Block\n")
 	out.WriteString("  ChainID:       ")
 	out.WriteString(hex.EncodeToString(fct.FACTOID_CHAINID))
@@ -653,7 +673,10 @@ func (b FBlock) CustomMarshalText() (text []byte, err error) {
 
 	for i, trans := range b.Transactions {
 
-		for markPeriod < 10 && i == b.endOfPeriod[markPeriod] {
+		for markPeriod < len(b.endOfPeriod) &&
+			b.endOfPeriod[markPeriod] > 0 && // Ignore if markers are not set
+			i == b.endOfPeriod[markPeriod] {
+
 			out.WriteString(fmt.Sprintf("\n   End of Minute %d\n\n", markPeriod+1))
 			markPeriod++
 		}

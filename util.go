@@ -9,7 +9,7 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
-	"github.com/btcsuitereleases/btcutil/base58"
+	"github.com/FactomProject/btcutil/base58"
 	"runtime/debug"
 	"strconv"
 	"strings"
