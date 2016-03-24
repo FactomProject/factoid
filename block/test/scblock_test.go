@@ -285,7 +285,7 @@ func Test_alot_block(test *testing.T) {
 		test.Fail()
 	}
 
-	for bcnt := 0; bcnt < 100; bcnt++ {
+	for bcnt := 0; bcnt < 500; bcnt++ {
 		scb := block.NewFBlock(1000, 0)
 		cb := w.CreateTransaction(uint64(time.Now().UnixNano() / 1000000))
 		scb.AddCoinbase(cb)
@@ -294,13 +294,13 @@ func Test_alot_block(test *testing.T) {
 			max := 0
 			switch rand.Int() % 4 {
 				case 0:
-					max = rand.Int()% 2 
+					max = 0
 				case 1:
-					max = rand.Int()%3
+					max = rand.Int()%1
 				case 2:
-					max = rand.Int()%4
+					max = rand.Int()%2
 				case 3:
-					max = rand.Int()%5
+					max = rand.Int()%3
 			}
 			
 			for j := 0; j < max ; j++ {
@@ -342,7 +342,7 @@ func Test_alot_block(test *testing.T) {
 			scb.EndOfPeriod(min)
 		}
 
-		fmt.Println("SCB Period marks: ", scb.GetEndOfPeriod())
+		fmt.Println("SCB Period marks for blk ",bcnt,": ", scb.GetEndOfPeriod(),"             ")
 
 		data, err := scb.MarshalBinary()
 		if err != nil {
@@ -361,9 +361,12 @@ func Test_alot_block(test *testing.T) {
 		}
 
 		result := bytes.Compare(data, data2)
-		fmt.Println("data2==data: ", result)
-		fmt.Println("SCB2 Period marks: ", scb2.GetEndOfPeriod())
-
+		if result != 0 {
+			fmt.Println("Failure at ",bcnt,".  Data does not compare")
+			test.Fail()
+			return
+		}
+		
 		scb3 := new(block.FBlock)
 		scb3.UnmarshalBinaryData(data2)
 
@@ -375,10 +378,12 @@ func Test_alot_block(test *testing.T) {
 		}
 
 		result = bytes.Compare(data2, data3)
-		fmt.Println("data2==data3: ", result)
-		fmt.Println("SCB3 Period marks: ", scb3.GetEndOfPeriod())
-
-		//fmt.Println("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n", scb2)
+		if result != 0 {
+			fmt.Println("Failure at ",bcnt,".  Data does not compare")
+			test.Fail()
+			return
+		}
+			
 
 		if err != nil {
 			fmt.Println(err)
@@ -388,10 +393,6 @@ func Test_alot_block(test *testing.T) {
 		//sc.Prtln("FIRST\n", scb, "SECOND\n", scb2)
 		if scb.IsEqual(scb2) != nil {
 			fmt.Println("NOT EQUAL: scb.IsEqual(scb2)")
-			//fmt.Println("scb: ", scb)
-			//fmt.Println()
-			//fmt.Println()
-			//fmt.Println("scb2: ", scb)
 			test.Fail()
 			return
 		}
