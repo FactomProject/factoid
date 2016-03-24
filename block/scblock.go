@@ -150,8 +150,10 @@ func (b *FBlock) MarshalTrans() ([]byte, error) {
 	var i int
 	var trans fct.ITransaction
 	
-	if b.GetEndOfPeriod()[9]!= 0 {
-		return nil, fmt.Errorf("Factoid Block is incomplete.  Missing EOM markers detected: %v",b.endOfPeriod)
+	for _, v := range b.GetEndOfPeriod() {
+		if v == 0 {
+			return nil, fmt.Errorf("Factoid Block is incomplete.  Missing EOM markers detected: %v",b.endOfPeriod)
+		}
 	}
 	
 	for i, trans = range b.Transactions {
