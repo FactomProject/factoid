@@ -339,6 +339,14 @@ func Test_alot_block(test *testing.T) {
 					return
 				}
 			}
+			
+			// Note:  All incomplete blocks have at least one period with 
+			// a zero value.
+			if scb.GetEndOfPeriod()[9]!= 0 {
+				test.Fail()
+				return
+			}
+			
 			scb.EndOfPeriod(min)
 		}
 
@@ -350,6 +358,7 @@ func Test_alot_block(test *testing.T) {
 			test.Fail()
 			return
 		}
+		
 		scb2 := new(block.FBlock)
 		_, err = scb2.UnmarshalBinaryData(data)
 
@@ -376,7 +385,7 @@ func Test_alot_block(test *testing.T) {
 			test.Fail()
 			return
 		}
-
+		
 		result = bytes.Compare(data2, data3)
 		if result != 0 {
 			fmt.Println("Failure at ",bcnt,".  Data does not compare")
@@ -402,5 +411,16 @@ func Test_alot_block(test *testing.T) {
 			test.Fail()
 			return
 		}
+		
+		scbStr := scb.String()
+		scb2Str := scb2.String()
+		scb3Str := scb3.String()
+		
+		if scbStr != scb2Str || scbStr != scb3Str {
+			fmt.Println("String prints don't match")
+			test.Fail()
+			return
+		}
+		
 	}
 }
