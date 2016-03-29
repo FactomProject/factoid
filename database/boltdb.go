@@ -124,7 +124,7 @@ func (d *BoltDB) Clear(bucketList [][]byte) {
 	if d.filename == nil {
 		panic("Database has not been initialized properly; missing filename")
 	}
-	
+
 	tdb, err := bolt.Open(string(d.filename), 0600, nil)
 
 	if err != nil {
@@ -149,22 +149,22 @@ func (d *BoltDB) Clear(bucketList [][]byte) {
 //      Init(bucketList [][]byte, instances map[[32]byte]IBlock, filename string)
 //
 func (d *BoltDB) Init(a ...interface{}) {
-	
+
 	if d.doNotCache == nil {
 		d.doNotCache = make(map[string][]byte, 5)
 		d.doNotPersist = make(map[string][]byte, 5)
 	}
-	
+
 	bucketList := a[0].([][]byte)
-	
+
 	if d.instances == nil {
 		d.instances = a[1].(map[[32]byte]fct.IBlock)
-	}else{
+	} else {
 		for k, v := range a[1].(map[[32]byte]fct.IBlock) {
-			d.instances[k]=v
+			d.instances[k] = v
 		}
 	}
-	
+
 	if d.db == nil {
 		if len(a) < 3 {
 			if d.filename == nil {
@@ -181,7 +181,7 @@ func (d *BoltDB) Init(a ...interface{}) {
 
 		d.db = tdb
 	}
-	
+
 	for _, bucket := range bucketList {
 		d.db.Update(func(tx *bolt.Tx) error {
 			_, err := tx.CreateBucketIfNotExists(bucket)

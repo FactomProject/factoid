@@ -293,18 +293,18 @@ func Test_alot_block(test *testing.T) {
 		for min := 1; min <= 10; min++ {
 			max := 0
 			switch rand.Int() % 4 {
-				case 0:
-					max = 0
-				case 1:
-					max = rand.Int()%1
-				case 2:
-					max = rand.Int()%2
-				case 3:
-					max = rand.Int()%3
+			case 0:
+				max = 0
+			case 1:
+				max = rand.Int() % 1
+			case 2:
+				max = rand.Int() % 2
+			case 3:
+				max = rand.Int() % 3
 			}
-			
-			for j := 0; j < max ; j++ {
-				
+
+			for j := 0; j < max; j++ {
+
 				t := w.CreateTransaction(uint64(time.Now().UnixNano() / 1000000))
 
 				w.AddInput(t, h1, 1000000)
@@ -339,18 +339,18 @@ func Test_alot_block(test *testing.T) {
 					return
 				}
 			}
-			
-			// Note:  All incomplete blocks have at least one period with 
+
+			// Note:  All incomplete blocks have at least one period with
 			// a zero value.
-			if scb.GetEndOfPeriod()[9]!= 0 {
+			if scb.GetEndOfPeriod()[9] != 0 {
 				test.Fail()
 				return
 			}
-			
+
 			scb.EndOfPeriod(min)
 		}
 
-		fmt.Println("SCB Period marks for blk ",bcnt,": ", scb.GetEndOfPeriod(),"             ")
+		fmt.Println("SCB Period marks for blk ", bcnt, ": ", scb.GetEndOfPeriod(), "             ")
 
 		data, err := scb.MarshalBinary()
 		if err != nil {
@@ -358,7 +358,7 @@ func Test_alot_block(test *testing.T) {
 			test.Fail()
 			return
 		}
-		
+
 		scb2 := new(block.FBlock)
 		_, err = scb2.UnmarshalBinaryData(data)
 
@@ -371,11 +371,11 @@ func Test_alot_block(test *testing.T) {
 
 		result := bytes.Compare(data, data2)
 		if result != 0 {
-			fmt.Println("Failure at ",bcnt,".  Data does not compare")
+			fmt.Println("Failure at ", bcnt, ".  Data does not compare")
 			test.Fail()
 			return
 		}
-		
+
 		scb3 := new(block.FBlock)
 		scb3.UnmarshalBinaryData(data2)
 
@@ -385,14 +385,13 @@ func Test_alot_block(test *testing.T) {
 			test.Fail()
 			return
 		}
-		
+
 		result = bytes.Compare(data2, data3)
 		if result != 0 {
-			fmt.Println("Failure at ",bcnt,".  Data does not compare")
+			fmt.Println("Failure at ", bcnt, ".  Data does not compare")
 			test.Fail()
 			return
 		}
-			
 
 		if err != nil {
 			fmt.Println(err)
@@ -411,16 +410,16 @@ func Test_alot_block(test *testing.T) {
 			test.Fail()
 			return
 		}
-		
+
 		scbStr := scb.String()
 		scb2Str := scb2.String()
 		scb3Str := scb3.String()
-		
+
 		if scbStr != scb2Str || scbStr != scb3Str {
 			fmt.Println("String prints don't match")
 			test.Fail()
 			return
 		}
-		
+
 	}
 }

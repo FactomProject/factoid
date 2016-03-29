@@ -120,7 +120,7 @@ func (b *FBlock) EndOfPeriod(period int) {
 		// should not reset it as 0. for example, when missing ack is requested
 		// or ack is out of order.
 		//for i := period + 1; i < len(b.endOfPeriod); i++ {
-			//b.endOfPeriod[i] = 0
+		//b.endOfPeriod[i] = 0
 		//}
 	}
 }

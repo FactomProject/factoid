@@ -70,7 +70,7 @@ func GetDatabase(filename string) database.IFDatabase {
 	bucketList = append(bucketList, []byte(fct.W_NAME))
 	bucketList = append(bucketList, []byte(fct.W_SEEDS))
 	bucketList = append(bucketList, []byte(fct.W_SEED_HEADS))
-	
+
 	instances = make(map[[fct.ADDRESS_LENGTH]byte]fct.IBlock)
 
 	var addinstance = func(b fct.IBlock) {

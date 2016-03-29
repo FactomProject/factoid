@@ -35,7 +35,7 @@ type ITransaction interface {
 
 	// Get the hash of the signed portion (not including signatures)
 	GetSigHash() IHash
-	
+
 	// Accessors the inputs, outputs, and Entry Credit outputs (ecoutputs)
 	// to this transaction.
 	GetInput(int) (IInAddress, error)
@@ -69,14 +69,14 @@ type ITransaction interface {
 
 	// Calculate the fee for a transaction, given the specified exchange rate.
 	CalculateFee(factoshisPerEC uint64) (uint64, error)
-	
+
 	SetBlockHeight(int)
 	GetBlockHeight() int
 }
 
 type Transaction struct {
-	TransactionID  IHash 		  // Unique hash for this transaction
-	BlockHeight    int		      // Used internally.  You can't rely on this being set
+	TransactionID IHash // Unique hash for this transaction
+	BlockHeight   int   // Used internally.  You can't rely on this being set
 	// version     uint64         Version of transaction. Hardcoded, naturally.
 	MilliTimestamp uint64
 	// #inputs     uint8          number of inputs
@@ -96,9 +96,8 @@ func (t *Transaction) SetBlockHeight(i int) {
 	t.BlockHeight = i
 }
 func (t *Transaction) GetBlockHeight() int {
-	return t.BlockHeight 
+	return t.BlockHeight
 }
-
 
 // Clears caches if they are no long valid.
 func (t *Transaction) clearCaches() {
@@ -126,8 +125,6 @@ func (t *Transaction) GetSigHash() IHash {
 	t.TransactionID = Sha(m)
 	return t.TransactionID
 }
-
-
 
 func (t Transaction) String() string {
 	txt, err := t.CustomMarshalText()
@@ -695,7 +692,7 @@ func (t *Transaction) CustomMarshalText() (text []byte, err error) {
 	var out bytes.Buffer
 	out.WriteString(fmt.Sprintf("Transaction (size %d):\n", len(data)))
 	out.WriteString("                 Version: ")
-	out.WriteString(fmt.Sprintf("%v",t.GetVersion()))
+	out.WriteString(fmt.Sprintf("%v", t.GetVersion()))
 	out.WriteString("\n          Transaction ID: ")
 	out.WriteString(t.GetSigHash().String())
 	out.WriteString("\n          MilliTimestamp: ")
