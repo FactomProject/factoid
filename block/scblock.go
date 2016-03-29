@@ -117,9 +117,11 @@ func (b *FBlock) EndOfPeriod(period int) {
 	} else {
 		period = period - 1 // Make the period zero based.
 		b.endOfPeriod[period] = len(b.Transactions)
-		for i := period + 1; i < len(b.endOfPeriod); i++ {
-			b.endOfPeriod[i] = 0
-		}
+		// should not reset it as 0. for example, when missing ack is requested
+		// or ack is out of order.
+		//for i := period + 1; i < len(b.endOfPeriod); i++ {
+			//b.endOfPeriod[i] = 0
+		//}
 	}
 }
 func (b *FBlock) GetEndOfPeriod() [10]int {
@@ -149,13 +151,13 @@ func (b *FBlock) MarshalTrans() ([]byte, error) {
 	var periodMark = 0
 	var i int
 	var trans fct.ITransaction
-	
+
 	for _, v := range b.GetEndOfPeriod() {
 		if v == 0 {
-			return nil, fmt.Errorf("Factoid Block is incomplete.  Missing EOM markers detected: %v",b.endOfPeriod)
+			return nil, fmt.Errorf("Factoid Block is incomplete.  Missing EOM markers detected: %v", b.endOfPeriod)
 		}
 	}
-	
+
 	for i, trans = range b.Transactions {
 
 		for periodMark < len(b.endOfPeriod) &&
@@ -318,8 +320,8 @@ func (b *FBlock) UnmarshalBinaryData(data []byte) (newdata []byte, err error) {
 		}
 		b.Transactions[i] = trans
 	}
-	for periodMark<len(b.endOfPeriod) {
-		b.endOfPeriod[periodMark]=int(cnt)
+	for periodMark < len(b.endOfPeriod) {
+		b.endOfPeriod[periodMark] = int(cnt)
 		periodMark++
 	}
 	return data, nil
@@ -364,7 +366,7 @@ func (b1 *FBlock) IsEqual(block fct.IBlock) []fct.IBlock {
 	//if b1.endOfPeriod != b2.endOfPeriod {
 	for i, k := range b1.endOfPeriod {
 		if k != b2.endOfPeriod[i] {
-			fmt.Println("Not equal: endOfPeriod", i,k, b2.endOfPeriod[i] )
+			fmt.Println("Not equal: endOfPeriod", i, k, b2.endOfPeriod[i])
 			return append(r, b1)
 		}
 	}
