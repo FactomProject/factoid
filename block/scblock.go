@@ -527,7 +527,7 @@ func (b FBlock) ValidateTransaction(index int, trans fct.ITransaction) error {
 func (b FBlock) Validate() error {
 	for i, trans := range b.Transactions {
 		if err := b.ValidateTransaction(i, trans); err != nil {
-			return nil
+			return err
 		}
 		if i == 0 {
 			if len(trans.GetInputs()) != 0 {
