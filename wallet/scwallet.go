@@ -136,9 +136,9 @@ func (w *SCWallet) SignInputs(trans fct.ITransaction) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	
+
 	var errMsg []byte
-	
+
 	rcds := trans.GetRCDs()
 	for i, rcd := range rcds {
 		rcd1, ok := rcd.(*fct.RCD_1)
@@ -154,18 +154,18 @@ func (w *SCWallet) SignInputs(trans fct.ITransaction) (bool, error) {
 				sigblk := new(fct.SignatureBlock)
 				sigblk.AddSignature(sig)
 				trans.SetSignatureBlock(i, sigblk)
-			}else{
-				errMsg = append(errMsg, 
+			} else {
+				errMsg = append(errMsg,
 					[]byte("Do not have the private key for: "+
-					fct.ConvertFctAddressToUserStr(fct.NewAddress(pub))+"\n")...)
+						fct.ConvertFctAddressToUserStr(fct.NewAddress(pub))+"\n")...)
 			}
 		}
 	}
 
 	if errMsg != nil {
-		return false, fmt.Errorf("%s",string(errMsg))
+		return false, fmt.Errorf("%s", string(errMsg))
 	}
-	return true,nil
+	return true, nil
 }
 
 // SignCommit will sign the []byte with the Entry Credit Key and return the
@@ -328,9 +328,9 @@ func (w *SCWallet) GetSeed() []byte {
 		randomstuff := make([]byte, 1024)
 		rand.Read(randomstuff)
 		w.NewSeed(randomstuff)
-	}else if w.RootSeed == nil {
+	} else if w.RootSeed == nil {
 		w.RootSeed = iroot.(database.IByteStore).Bytes()
-		inext := w.db.GetRaw([]byte(fct.W_SEED_HEADS),w.RootSeed[:32])
+		inext := w.db.GetRaw([]byte(fct.W_SEED_HEADS), w.RootSeed[:32])
 		w.NextSeed = inext.(database.IByteStore).Bytes()
 	}
 	hasher := sha512.New()
@@ -399,7 +399,7 @@ func (w *SCWallet) CreateTransaction(time uint64) fct.ITransaction {
 }
 
 func (w *SCWallet) getWalletEntry(bucket []byte, address fct.IAddress) (IWalletEntry, fct.IAddress, error) {
-	
+
 	v := w.db.GetRaw([]byte(fct.W_RCD_ADDRESS_HASH), address.Bytes())
 	if v == nil {
 		return nil, nil, fmt.Errorf("Unknown address")
@@ -429,18 +429,18 @@ func (w *SCWallet) AddInput(trans fct.ITransaction, address fct.IAddress, amount
 	we, adr, err := w.getWalletEntry([]byte(fct.W_RCD_ADDRESS_HASH), address)
 	// If it isn't, we assume the user knows what they are doing.
 	if we == nil || err != nil {
-		rcd := fct.NewRCD_1(address.Bytes()) 
+		rcd := fct.NewRCD_1(address.Bytes())
 		trans.AddRCD(rcd)
 		adr, err := rcd.GetAddress()
 		if err != nil {
 			return err
 		}
 		trans.AddInput(fct.CreateAddress(adr), amount)
-	}else{		
+	} else {
 		trans.AddRCD(we.GetRCD())
 		trans.AddInput(fct.CreateAddress(adr), amount)
 	}
-	
+
 	return nil
 }
 
