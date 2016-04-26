@@ -501,57 +501,57 @@ func (b *FBlock) GetExchRate() uint64 {
 
 func (b FBlock) ValidateTransaction(index int, trans fct.ITransaction) error {
 	// Calculate the fee due.
-	{
-		err := trans.Validate(index)
-		if err != nil {
-			return err
-		}
+	err := trans.Validate(index)
+	if err != nil {
+		return err
 	}
 
 	//Ignore coinbase transaction's signatures
-	if len(b.Transactions) > 0 {
+	if index > 0 {
 		err := trans.ValidateSignatures()
 		if err != nil {
 			return err
 		}
+		fee, err := trans.CalculateFee(b.ExchRate)
+		if err != nil {
+			return err
+		}
+		tin, err := trans.TotalInputs()
+		if err != nil {
+			return err
+		}
+		tout, err := trans.TotalOutputs()
+		if err != nil {
+			return err
+		}
+		tec, err := trans.TotalECs()
+		if err != nil {
+			return err
+		}
+		sum, err := fct.ValidateAmounts(tout, tec, fee)
+		if err != nil {
+			return err
+		}
+
+		if tin < sum {
+			str, _ := trans.JSONString()
+			fmt.Printf("%v\n", str)
+			return fmt.Errorf("The inputs %s do not cover the outputs %s,\n"+
+				"the Entry Credit outputs %s, and the required fee %s",
+				strings.TrimSpace(fct.ConvertDecimal(tin)),
+				strings.TrimSpace(fct.ConvertDecimal(tout)),
+				strings.TrimSpace(fct.ConvertDecimal(tec)),
+				strings.TrimSpace(fct.ConvertDecimal(fee)))
+		}
 	}
 
-	fee, err := trans.CalculateFee(b.ExchRate)
-	if err != nil {
-		return err
-	}
-	tin, err := trans.TotalInputs()
-	if err != nil {
-		return err
-	}
-	tout, err := trans.TotalOutputs()
-	if err != nil {
-		return err
-	}
-	tec, err := trans.TotalECs()
-	if err != nil {
-		return err
-	}
-	sum, err := fct.ValidateAmounts(tout, tec, fee)
-	if err != nil {
-		return err
-	}
-
-	if tin < sum {
-		return fmt.Errorf("The inputs %s do not cover the outputs %s,\n"+
-			"the Entry Credit outputs %s, and the required fee %s",
-			strings.TrimSpace(fct.ConvertDecimal(tin)),
-			strings.TrimSpace(fct.ConvertDecimal(tout)),
-			strings.TrimSpace(fct.ConvertDecimal(tec)),
-			strings.TrimSpace(fct.ConvertDecimal(fee)))
-	}
 	return nil
 }
 
 func (b FBlock) Validate() error {
 	for i, trans := range b.Transactions {
 		if err := b.ValidateTransaction(i, trans); err != nil {
-			return nil
+			return err
 		}
 		if i == 0 {
 			if len(trans.GetInputs()) != 0 {
@@ -573,7 +573,7 @@ func (b FBlock) Validate() error {
 	b.CalculateHashes()
 
 	// Make sure nothing changes.  If something did, this block is bad.
-	if mr != b.BodyMR {
+	if mr.IsSameAs(b.BodyMR) == false {
 		return fmt.Errorf("This blocks Merkle Root of the transactions does not match the transactions")
 	}
 
