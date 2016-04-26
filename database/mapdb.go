@@ -7,12 +7,14 @@ package database
 import (
 	"bytes"
 	"fmt"
+	"sync"
 	fct "github.com/FactomProject/factoid"
 )
 
 var _ = bytes.Compare
 
 type MapDB struct {
+	sync.RWMutex
 	FDatabase
 	cache map[DBKey](fct.IBlock) // Our Cache
 }
@@ -42,6 +44,8 @@ func (MapDB) UnmarshalBinaryData([]byte) ([]byte, error) {
 	return nil, nil
 }
 func (b MapDB) GetKeysValues(bucket []byte) (keys [][]byte, values []fct.IBlock) {
+	b.RLock()
+	defer b.RUnlock()
 
 	if b.GetPersist() == nil || b.doNotPersist[string(bucket)] != nil {
 		keys = make([][]byte, 0, 32)
@@ -71,12 +75,18 @@ func (b MapDB) String() string {
 }
 
 func (db *MapDB) Init(a ...interface{}) {
+	db.Lock()
+	defer db.Unlock()
+
 	db.cache = make(map[DBKey](fct.IBlock), 100)
 	db.doNotCache = make(map[string][]byte, 5)
 	db.doNotPersist = make(map[string][]byte, 5)
 }
 
 func (db *MapDB) GetRaw(bucket []byte, key []byte) (value fct.IBlock) {
+	db.Lock()
+	defer db.Unlock()
+
 	dbkey := makeKey(bucket, key).(*DBKey)
 	value = db.cache[*dbkey]
 	if value == nil && db.GetBacker() != nil {
@@ -95,6 +105,9 @@ func (db *MapDB) GetRaw(bucket []byte, key []byte) (value fct.IBlock) {
 }
 
 func (db *MapDB) PutRaw(bucket []byte, key []byte, value fct.IBlock) {
+	db.Lock()
+	defer db.Unlock()
+
 	dbkey := makeKey(bucket, key).(*DBKey)
 	if db.doNotCache[string(bucket)] == nil {
 		db.cache[*dbkey] = value
@@ -108,6 +121,9 @@ func (db *MapDB) PutRaw(bucket []byte, key []byte, value fct.IBlock) {
 }
 
 func (db *MapDB) DeleteKey(bucket []byte, key []byte) {
+	db.Lock()
+	defer db.Unlock()
+
 	dbkey := makeKey(bucket, key).(*DBKey)
 	db.cache[*dbkey] = nil
 	if db.doNotPersist[string(bucket)] != nil && db.GetPersist() != nil {
